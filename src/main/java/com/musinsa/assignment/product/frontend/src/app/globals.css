@@ -50,7 +50,7 @@ body {
   @apply w-full border-collapse border-2 border-black mb-4;
   table-layout: fixed;
   width: 100%;
-  max-width: 1000px; /* 상품 목록 테이블 기준 너비 */
+  max-width: 1280px;
   margin: 0 auto;
 }
 
@@ -111,12 +111,21 @@ body {
   @apply text-xl font-bold mb-4;
 }
 
-/* Layout adjustments */
+/* Layout adjustments - 무신사 스타일 */
+.layout-container {
+  min-width: 320px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--background);
+}
+
 .musinsa-container {
   width: 100%;
-  max-width: 1000px; /* 테이블 너비와 동일하게 설정 */
+  max-width: 600px; /* 무신사 메인 컨테이너 너비 */
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 20px; /* 좌우 여백 조정 */
 }
 
 /* Title styles */
@@ -152,15 +161,6 @@ body {
 }
 
 /* Musinsa Layout */
-.layout-container {
-  min-width: 320px; /* 최소 너비 수정 */
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background-color: var(--background);
-}
-
 .musinsa-header {
   width: 100%;
   background-color: var(--musinsa-black);
@@ -216,7 +216,7 @@ footer {
 
 .header-black-bg {
   width: 100%;
-  max-width: 1000px; /* 테이블 너비와 동일 */
+  max-width: 600px;
   background-color: var(--musinsa-black);
   margin: 0 auto;
 }
@@ -275,7 +275,7 @@ footer {
   @apply w-full border-collapse border-2 border-black mb-4;
   table-layout: fixed;
   width: 100%;
-  max-width: 1000px;
+  max-width: 1280px;
   margin: 0 auto;
 }
 
@@ -345,17 +345,9 @@ footer {
 }
 
 /* 반응형 미디어 쿼리 */
-@media (max-width: 1024px) {
+@media (max-width: 1280px) {
   .musinsa-container {
-    max-width: 100%;
-  }
-
-  .header-black-bg {
-    max-width: 100%;
-  }
-
-  .header-title {
-    font-size: 1.5rem;
+    padding: 0 20px;
   }
 }
 
@@ -402,6 +394,20 @@ footer {
     padding: 0.3rem 0.6rem;
     font-size: 0.8rem;
   }
+
+  .musinsa-container {
+    padding: 0 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .musinsa-container {
+    padding: 0 16px;
+  }
+  
+  .header-title {
+    font-size: 1.5rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -410,7 +416,7 @@ footer {
   }
 
   .musinsa-container {
-    padding: 0 0.5rem;
+    padding: 0 12px;
   }
 
   .tab-button {
