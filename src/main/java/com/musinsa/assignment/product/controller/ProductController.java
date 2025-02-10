@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/products")
@@ -36,5 +37,11 @@ public class ProductController {
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/lowest-price")
+    public ResponseEntity<Map<String, Object>> getLowestPriceEachCategory() {
+        Map<String, Object> result = productService.getLowestPriceEachCategory();
+        return ResponseEntity.ok(result);
     }
 } 
