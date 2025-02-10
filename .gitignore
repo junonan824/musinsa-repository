@@ -37,3 +37,30 @@ nohup.out
 *.h2.db
 *.mv.db
 *.sqlite
+
+# Next.js 관련 파일
+.next/
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnp/
+.pnp.js
+
+# Next.js 빌드 출력
+.next/
+out/
+
+# 프론트엔드 환경 변수
+.env*.local
+
+# Vercel 배포 관련
+.vercel
+
+# TypeScript 관련
+*.tsbuildinfo
+next-env.d.ts
+
+# PWA 관련
+public/sw.js
+public/workbox-*.js
