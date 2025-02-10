@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
 import com.musinsa.assignment.product.domain.Category;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
@@ -66,6 +68,58 @@ public class ProductService {
 
         result.put("lowestPriceByCategory", lowestPriceByCategory);
         result.put("totalPrice", totalPrice);
+        
+        return result;
+    }
+
+    public Map<String, Object> getLowestPriceSingleBrand() {
+        Map<String, Object> result = new HashMap<>();
+        Set<String> allBrands = productRepository.findAllBrandNames();
+        
+        // Get all categories that have at least one product
+        Set<Category> existingCategories = productRepository.findAll().stream()
+            .map(Product::getCategory)
+            .collect(Collectors.toSet());
+        
+        String selectedBrand = null;
+        int lowestTotalPrice = Integer.MAX_VALUE;
+        
+        for (String brand : allBrands) {
+            // Check if this brand covers all existing categories
+            long categoryCount = productRepository.countCategoriesByBrand(brand);
+            if (categoryCount == existingCategories.size()) {
+                int brandTotalPrice = 0;
+                List<Map<String, Object>> categoryPrices = new ArrayList<>();
+                
+                // Calculate total price for this brand
+                for (Category category : existingCategories) {
+                    List<Product> products = productRepository.findLowestPriceProductByBrandAndCategory(brand, category);
+                    if (!products.isEmpty()) {
+                        Product lowestPriceProduct = products.get(0);
+                        brandTotalPrice += lowestPriceProduct.getPrice();
+                        
+                        Map<String, Object> categoryInfo = new HashMap<>();
+                        categoryInfo.put("category", category.getKorName());
+                        categoryInfo.put("price", lowestPriceProduct.getPrice());
+                        categoryPrices.add(categoryInfo);
+                    }
+                }
+                
+                // Update selected brand if this one has lower total price
+                if (brandTotalPrice < lowestTotalPrice) {
+                    lowestTotalPrice = brandTotalPrice;
+                    selectedBrand = brand;
+                    result.put("items", categoryPrices);
+                }
+            }
+        }
+        
+        if (selectedBrand == null) {
+            result.put("message", "No brand covers all categories.");
+        } else {
+            result.put("brand", selectedBrand);
+            result.put("totalPrice", lowestTotalPrice);
+        }
         
         return result;
     }
