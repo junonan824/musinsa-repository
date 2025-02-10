@@ -1,0 +1,326 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground: #000000;
+  --background: #f8f9fa;
+  --musinsa-black: #000000;
+  --musinsa-white: #ffffff;
+  --musinsa-gray: #f4f4f4;
+  --musinsa-border: #e5e5e5;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Remove any color-scheme related media queries */
+@layer base {
+  /* Override any default color schemes */
+  :root {
+    color-scheme: light;
+  }
+}
+
+/* Musinsa specific styles */
+.musinsa-header {
+  background-color: var(--musinsa-black);
+  color: var(--musinsa-white);
+}
+
+.musinsa-panel-header {
+  background-color: var(--musinsa-black) !important;
+  color: var(--musinsa-white) !important;
+}
+
+.musinsa-table-header {
+  background-color: var(--musinsa-black) !important;
+  color: var(--musinsa-white) !important;
+}
+
+/* Musinsa Table Styles */
+.musinsa-table,
+.analysis-table,
+.category-analysis-table,
+.brand-analysis-table {
+  @apply w-full border-collapse border-2 border-black mb-4;
+  table-layout: fixed;
+  width: 100%;
+  max-width: 1000px; /* 상품 목록 테이블 기준 너비 */
+  margin: 0 auto;
+}
+
+/* 테이블 셀 공통 스타일 */
+.musinsa-table th,
+.musinsa-table td,
+.analysis-table th,
+.analysis-table td,
+.category-analysis-table th,
+.category-analysis-table td,
+.brand-analysis-table th,
+.brand-analysis-table td {
+  @apply border-b-2 border-r-2 border-black py-3 px-4;
+  text-align: center; /* 모든 셀 중앙 정렬 */
+  vertical-align: middle;
+}
+
+/* 카테고리별 최저가 분석 테이블 */
+.category-analysis-table th,
+.category-analysis-table td {
+  width: 33.33%;
+}
+
+/* 단일 브랜드 분석 테이블 */
+.brand-analysis-table th,
+.brand-analysis-table td {
+  width: 50%;
+}
+
+/* 마지막 열 테두리 제거 */
+.musinsa-table th:last-child,
+.musinsa-table td:last-child,
+.analysis-table th:last-child,
+.analysis-table td:last-child,
+.category-analysis-table th:last-child,
+.category-analysis-table td:last-child,
+.brand-analysis-table th:last-child,
+.brand-analysis-table td:last-child {
+  @apply border-r-0;
+}
+
+/* 총액 행 스타일 - 더 진한 회색으로 수정 */
+.total-row {
+  background-color: #e5e5e5; /* 더 진한 회색 배경 */
+}
+
+.total-row td {
+  @apply text-center font-bold;
+  padding: 12px 4px;
+}
+
+/* Section Headers */
+.section-header {
+  @apply bg-black text-white py-2 px-4 mb-4 w-full;
+}
+
+.section-title {
+  @apply text-xl font-bold mb-4;
+}
+
+/* Layout adjustments */
+.musinsa-container {
+  width: 100%;
+  max-width: 1000px; /* 테이블 너비와 동일하게 설정 */
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Title styles */
+.musinsa-title {
+  @apply text-2xl font-bold text-center py-4;
+}
+
+/* Panel styles */
+.panel-title {
+  @apply text-lg font-medium text-center py-2;
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-4 py-2 bg-black text-white rounded hover:bg-gray-800 transition-colors;
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors;
+  }
+
+  .input-field {
+    @apply w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-black;
+  }
+
+  .table-header {
+    @apply py-4 px-6 text-left text-sm font-medium;
+  }
+
+  .table-cell {
+    @apply py-4 px-6;
+  }
+}
+
+/* Musinsa Layout */
+.layout-container {
+  min-width: 1024px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--background);
+}
+
+.musinsa-header {
+  width: 100%;
+  background-color: var(--musinsa-black);
+  color: var(--musinsa-white);
+  display: flex;
+  justify-content: center;
+}
+
+.content-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  background-color: var(--background);
+  min-height: calc(100vh - 64px);
+}
+
+footer {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* 불필요한 스타일 제거 */
+.content-container {
+  display: none;
+}
+
+/* Analysis Tables */
+.analysis-table {
+  @apply w-full border-collapse border-2 border-black mb-4;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.analysis-section {
+  @apply mb-8;
+}
+
+.analysis-title {
+  @apply text-xl font-bold mb-4;
+}
+
+/* Header Styles - 너비 수정 */
+.header-container {
+  width: 100%;
+  background-color: white; /* 전체 배경은 흰색 */
+  display: flex;
+  justify-content: center;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.header-black-bg {
+  width: 100%;
+  max-width: 1000px; /* 테이블 너비와 동일 */
+  background-color: var(--musinsa-black);
+  margin: 0 auto;
+}
+
+.header-content {
+  width: 100%;
+  margin: 0 auto;
+  padding: 1rem 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.header-title {
+  color: var(--musinsa-white);
+  font-size: 2rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.header-nav {
+  display: flex;
+  justify-content: flex-start;
+  gap: 1rem;
+}
+
+.tab-button {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.tab-button.active {
+  background-color: var(--musinsa-white);
+  color: var(--musinsa-black);
+}
+
+.tab-button:not(.active) {
+  color: var(--musinsa-gray);
+}
+
+.tab-button:not(.active):hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Section Titles */
+.page-title {
+  @apply text-2xl font-bold mb-6;
+}
+
+/* 테이블 레이아웃 - 번호 1 */
+.musinsa-table,
+.analysis-table,
+.category-analysis-table,
+.brand-analysis-table {
+  @apply w-full border-collapse border-2 border-black mb-4;
+  table-layout: fixed;
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* 테이블 헤더 - 번호 2 */
+.musinsa-table th,
+.analysis-table th,
+.category-analysis-table th,
+.brand-analysis-table th {
+  @apply py-3 px-4 border-b-2 border-r-2 border-black;
+  background-color: black;
+  color: white;
+  text-align: center;
+}
+
+/* 테이블 셀 - 번호 3 */
+.musinsa-table td,
+.analysis-table td,
+.category-analysis-table td,
+.brand-analysis-table td {
+  @apply py-3 px-4 border-b-2 border-r-2 border-black;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* 마지막 열 테두리 제거 */
+.musinsa-table th:last-child,
+.musinsa-table td:last-child,
+.analysis-table th:last-child,
+.analysis-table td:last-child,
+.category-analysis-table th:last-child,
+.category-analysis-table td:last-child,
+.brand-analysis-table th:last-child,
+.brand-analysis-table td:last-child {
+  @apply border-r-0;
+}
+
+/* 테이블 너비 조정 */
+.category-analysis-table th,
+.category-analysis-table td {
+  width: 33.33%;
+}
+
+.brand-analysis-table th,
+.brand-analysis-table td {
+  width: 50%;
+}
