@@ -44,4 +44,16 @@ public class ProductController {
         Map<String, Object> result = productService.getLowestPriceEachCategory();
         return ResponseEntity.ok(result);
     }
+
+    @GetMapping("/lowest-price-brand")
+    public ResponseEntity<Map<String, Object>> getLowestPriceSingleBrand() {
+        Map<String, Object> result = productService.getLowestPriceSingleBrand();
+        
+        // If no brand covers all categories, return 404
+        if (result.containsKey("message")) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+        }
+        
+        return ResponseEntity.ok(result);
+    }
 } 
