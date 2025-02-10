@@ -1,0 +1,39 @@
+# Gradle 관련 파일
+.gradle/
+build/
+out/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IntelliJ / VSCode / Eclipse 설정 파일
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# OS에서 생성하는 불필요한 파일
+.DS_Store
+Thumbs.db
+
+# 실행 관련 파일
+HELP.md
+*.log
+logs/
+nohup.out
+
+# 환경 변수 및 보안 관련 파일
+.env
+*.properties
+*.yml
+!src/main/resources/application.yml
+
+# JAR / WAR / Binary 파일
+*.jar
+*.war
+*.ear
+
+# H2 및 기타 DB 관련 파일
+*.h2.db
+*.mv.db
+*.sqlite
