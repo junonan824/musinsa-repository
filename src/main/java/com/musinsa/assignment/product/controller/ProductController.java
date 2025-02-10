@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/products")
+@RequestMapping("/api")
 public class ProductController {
 
     private final ProductService productService;
@@ -21,35 +21,34 @@ public class ProductController {
         this.productService = productService;
     }
 
-    @GetMapping
+    @GetMapping("/products")
     public ResponseEntity<List<Product>> getAllProducts() {
         List<Product> products = productService.findAll();
         return ResponseEntity.ok(products);
     }
 
-    @PostMapping
+    @PostMapping("/products")
     public ResponseEntity<Product> createProduct(@RequestBody Product product) {
         Product savedProduct = productService.save(product);
         return new ResponseEntity<>(savedProduct, HttpStatus.CREATED);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/products/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/lowest-price")
-    public ResponseEntity<Map<String, Object>> getLowestPriceEachCategory() {
+    @GetMapping("/lowest-price-by-category")
+    public ResponseEntity<Map<String, Object>> getLowestPriceByCategory() {
         Map<String, Object> result = productService.getLowestPriceEachCategory();
         return ResponseEntity.ok(result);
     }
 
-    @GetMapping("/lowest-price-brand")
+    @GetMapping("/lowest-price-single-brand")
     public ResponseEntity<Map<String, Object>> getLowestPriceSingleBrand() {
         Map<String, Object> result = productService.getLowestPriceSingleBrand();
         
-        // If no brand covers all categories, return 404
         if (result.containsKey("message")) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
         }
