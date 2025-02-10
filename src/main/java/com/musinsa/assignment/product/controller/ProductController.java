@@ -3,10 +3,12 @@ package com.musinsa.assignment.product.controller;
 import com.musinsa.assignment.product.domain.Product;
 import com.musinsa.assignment.product.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -22,9 +24,19 @@ public class ProductController {
     }
 
     @GetMapping("/products")
-    public ResponseEntity<List<Product>> getAllProducts() {
-        List<Product> products = productService.findAll();
-        return ResponseEntity.ok(products);
+    public ResponseEntity<Map<String, Object>> getAllProducts(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<Product> productPage = productService.getAllProducts(page, size);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("products", productPage.getContent());
+        response.put("currentPage", productPage.getNumber());
+        response.put("totalItems", productPage.getTotalElements());
+        response.put("totalPages", productPage.getTotalPages());
+        
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/products")

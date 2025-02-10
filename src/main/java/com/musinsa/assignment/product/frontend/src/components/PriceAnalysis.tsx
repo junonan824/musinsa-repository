@@ -53,28 +53,30 @@ export default function PriceAnalysis({ refreshTrigger }: PriceAnalysisProps) {
       <div className="analysis-section">
         <h3 className="analysis-title">카테고리별 최저가 분석</h3>
         {categoryAnalysis && (
-          <table className="analysis-table category-analysis-table">
-            <thead>
-              <tr className="musinsa-table-header">
-                <th>카테고리</th>
-                <th>브랜드</th>
-                <th>가격</th>
-              </tr>
-            </thead>
-            <tbody>
-              {categoryAnalysis.lowestPriceByCategory.map((item, index) => (
-                <tr key={index}>
-                  <td>{item.category}</td>
-                  <td>{item.brand}</td>
-                  <td>{item.price.toLocaleString()}원</td>
+          <div className="table-container">
+            <table className="analysis-table category-analysis-table">
+              <thead>
+                <tr className="musinsa-table-header">
+                  <th>카테고리</th>
+                  <th>브랜드</th>
+                  <th>가격</th>
                 </tr>
-              ))}
-              <tr className="total-row">
-                <td colSpan={2}>총액</td>
-                <td>{categoryAnalysis.totalPrice.toLocaleString()}원</td>
-              </tr>
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {categoryAnalysis.lowestPriceByCategory.map((item, index) => (
+                  <tr key={index}>
+                    <td>{item.category}</td>
+                    <td>{item.brand}</td>
+                    <td>{item.price.toLocaleString()}원</td>
+                  </tr>
+                ))}
+                <tr className="total-row">
+                  <td colSpan={2}>총액</td>
+                  <td>{categoryAnalysis.totalPrice.toLocaleString()}원</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
@@ -86,26 +88,28 @@ export default function PriceAnalysis({ refreshTrigger }: PriceAnalysisProps) {
           ) : (
             <>
               <p className="font-semibold mb-2">브랜드: {brandAnalysis.brand}</p>
-              <table className="analysis-table brand-analysis-table">
-                <thead>
-                  <tr className="musinsa-table-header">
-                    <th>카테고리</th>
-                    <th>가격</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {brandAnalysis.items.map((item, index) => (
-                    <tr key={index}>
-                      <td>{item.category}</td>
-                      <td>{item.price.toLocaleString()}원</td>
+              <div className="table-container">
+                <table className="analysis-table brand-analysis-table">
+                  <thead>
+                    <tr className="musinsa-table-header">
+                      <th>카테고리</th>
+                      <th>가격</th>
                     </tr>
-                  ))}
-                  <tr className="total-row">
-                    <td>총액</td>
-                    <td>{brandAnalysis.totalPrice.toLocaleString()}원</td>
-                  </tr>
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {brandAnalysis.items.map((item, index) => (
+                      <tr key={index}>
+                        <td>{item.category}</td>
+                        <td>{item.price.toLocaleString()}원</td>
+                      </tr>
+                    ))}
+                    <tr className="total-row">
+                      <td>총액</td>
+                      <td>{brandAnalysis.totalPrice.toLocaleString()}원</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </>
           )
         )}
