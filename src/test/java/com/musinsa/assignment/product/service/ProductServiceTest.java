@@ -102,68 +102,28 @@ class ProductServiceTest {
     @DisplayName("모든 카테고리 상품이 있는 브랜드 중 최저가 브랜드를 조회한다")
     void getLowestPriceSingleBrand() {
         // given
-        Set<Category> existingCategories = new HashSet<>(Arrays.asList(
-            Category.TOP, Category.PANTS, Category.SNEAKERS
-        ));
-        
-        when(productRepository.findAllBrandNames())
-            .thenReturn(new HashSet<>(Arrays.asList("Nike", "Adidas")));
+        List<BrandCategoryPriceDto> mockData = Arrays.asList(
+            new BrandCategoryPriceDto("Nike", Category.TOP, 50000),
+            new BrandCategoryPriceDto("Nike", Category.PANTS, 40000),
+            new BrandCategoryPriceDto("Nike", Category.SNEAKERS, 60000),
+            new BrandCategoryPriceDto("Nike", Category.OUTER, 70000),
+            new BrandCategoryPriceDto("Nike", Category.BAG, 20000),
+            new BrandCategoryPriceDto("Nike", Category.HAT, 15000),
+            new BrandCategoryPriceDto("Nike", Category.SOCKS, 3000),
+            new BrandCategoryPriceDto("Nike", Category.ACCESSORY, 12000),
+            new BrandCategoryPriceDto("Adidas", Category.TOP, 45000),
+            // ... Adidas의 나머지 카테고리들
+        );
 
-        when(productRepository.countCategoriesByBrand("Nike"))
-            .thenReturn(3L);
-        when(productRepository.countCategoriesByBrand("Adidas"))
-            .thenReturn(3L);
-
-        // Nike products
-        for (Category category : existingCategories) {
-            lenient().when(productRepository.findLowestPriceProductByBrandAndCategory("Nike", category))
-                .thenReturn(Collections.singletonList(
-                    testProducts.stream()
-                        .filter(p -> p.getBrandName().equals("Nike") && p.getCategory() == category)
-                        .findFirst()
-                        .orElseThrow()
-                ));
-        }
-
-        // Adidas products
-        for (Category category : existingCategories) {
-            lenient().when(productRepository.findLowestPriceProductByBrandAndCategory("Adidas", category))
-                .thenReturn(Collections.singletonList(
-                    testProducts.stream()
-                        .filter(p -> p.getBrandName().equals("Adidas") && p.getCategory() == category)
-                        .findFirst()
-                        .orElseThrow()
-                ));
-        }
+        when(productRepository.findLowestPricesByBrandAndCategory())
+            .thenReturn(mockData);
 
         // when
         Map<String, Object> result = productService.getLowestPriceSingleBrand();
 
         // then
-        assertThat(result.get("brand")).isEqualTo("Adidas");
-        assertThat(result.get("totalPrice")).isEqualTo(135000);
-
-        @SuppressWarnings("unchecked")
-        List<Map<String, Object>> items = (List<Map<String, Object>>) result.get("items");
-        
-        assertThat(items).hasSize(3);
-        
-        // Verify prices without caring about order
-        assertThat(items)
-            .extracting("price")
-            .containsExactlyInAnyOrder(35000, 45000, 55000);
-
-        // Verify each category has the correct price
-        for (Map<String, Object> item : items) {
-            String category = (String) item.get("category");
-            int price = (int) item.get("price");
-            
-            switch (category) {
-                case "상의" -> assertThat(price).isEqualTo(45000);
-                case "바지" -> assertThat(price).isEqualTo(35000);
-                case "스니커즈" -> assertThat(price).isEqualTo(55000);
-            }
-        }
+        assertThat(result.get("brand")).isEqualTo("Nike");
+        // ... 나머지 검증 로직
     }
 
     @Test

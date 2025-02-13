@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import com.musinsa.assignment.product.domain.Category;
 import java.util.Set;
 import java.util.stream.Collectors;
+import com.musinsa.assignment.product.dto.BrandCategoryPriceDto;
 
 @Service
 public class ProductService {
@@ -77,53 +78,50 @@ public class ProductService {
 
     public Map<String, Object> getLowestPriceSingleBrand() {
         Map<String, Object> result = new HashMap<>();
-        Set<String> allBrands = productRepository.findAllBrandNames();
-        
-        // Get all categories that have at least one product
-        Set<Category> existingCategories = productRepository.findAll().stream()
-            .map(Product::getCategory)
-            .collect(Collectors.toSet());
-        
+        List<BrandCategoryPriceDto> pricesByBrandAndCategory = productRepository.findLowestPricesByBrandAndCategory();
+
+        // 브랜드별로 그룹화
+        Map<String, List<BrandCategoryPriceDto>> brandGroups = pricesByBrandAndCategory.stream()
+            .collect(Collectors.groupingBy(BrandCategoryPriceDto::getBrandName));
+
         String selectedBrand = null;
         int lowestTotalPrice = Integer.MAX_VALUE;
-        
-        for (String brand : allBrands) {
-            // Check if this brand covers all existing categories
-            long categoryCount = productRepository.countCategoriesByBrand(brand);
-            if (categoryCount == existingCategories.size()) {
-                int brandTotalPrice = 0;
-                List<Map<String, Object>> categoryPrices = new ArrayList<>();
-                
-                // Calculate total price for this brand
-                for (Category category : existingCategories) {
-                    List<Product> products = productRepository.findLowestPriceProductByBrandAndCategory(brand, category);
-                    if (!products.isEmpty()) {
-                        Product lowestPriceProduct = products.get(0);
-                        brandTotalPrice += lowestPriceProduct.getPrice();
-                        
-                        Map<String, Object> categoryInfo = new HashMap<>();
-                        categoryInfo.put("category", category.getKorName());
-                        categoryInfo.put("price", lowestPriceProduct.getPrice());
-                        categoryPrices.add(categoryInfo);
-                    }
-                }
-                
-                // Update selected brand if this one has lower total price
-                if (brandTotalPrice < lowestTotalPrice) {
-                    lowestTotalPrice = brandTotalPrice;
+        List<Map<String, Object>> selectedItems = null;
+
+        // 각 브랜드별로 처리
+        for (Map.Entry<String, List<BrandCategoryPriceDto>> entry : brandGroups.entrySet()) {
+            String brand = entry.getKey();
+            List<BrandCategoryPriceDto> items = entry.getValue();
+
+            // 모든 카테고리(8개)를 가지고 있는지 확인
+            if (items.size() == Category.values().length) {
+                int totalPrice = items.stream()
+                    .mapToInt(BrandCategoryPriceDto::getPrice)
+                    .sum();
+
+                if (totalPrice < lowestTotalPrice) {
+                    lowestTotalPrice = totalPrice;
                     selectedBrand = brand;
-                    result.put("items", categoryPrices);
+                    selectedItems = items.stream()
+                        .map(item -> {
+                            Map<String, Object> map = new HashMap<>();
+                            map.put("category", item.getCategory().getKorName());
+                            map.put("price", item.getPrice());
+                            return map;
+                        })
+                        .collect(Collectors.toList());
                 }
             }
         }
-        
+
         if (selectedBrand == null) {
             result.put("message", "No brand covers all categories.");
         } else {
             result.put("brand", selectedBrand);
             result.put("totalPrice", lowestTotalPrice);
+            result.put("items", selectedItems);
         }
-        
+
         return result;
     }
 
