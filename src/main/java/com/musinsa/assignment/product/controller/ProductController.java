@@ -1,5 +1,6 @@
 package com.musinsa.assignment.product.controller;
 
+import com.musinsa.assignment.product.domain.Category;
 import com.musinsa.assignment.product.domain.Product;
 import com.musinsa.assignment.product.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -66,5 +66,21 @@ public class ProductController {
         }
         
         return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/category-price-info/{category}")
+    public ResponseEntity<Map<String, Object>> getCategoryPriceInfo(@PathVariable String category) {
+        Map<String, Object> result = productService.getCategoryPriceInfo(Category.valueOf(category));
+        return ResponseEntity.ok(result);
+    }
+
+    @PutMapping("/products/{id}")
+    public ResponseEntity<Product> updateProduct(
+        @PathVariable Long id,
+        @RequestBody Product product
+    ) {
+        product.setId(id);
+        Product updatedProduct = productService.save(product);
+        return ResponseEntity.ok(updatedProduct);
     }
 } 

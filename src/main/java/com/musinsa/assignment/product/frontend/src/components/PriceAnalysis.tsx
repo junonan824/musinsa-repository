@@ -3,6 +3,7 @@
 import React from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
+import CategoryPriceAnalysis from './CategoryPriceAnalysis';
 
 interface CategoryAnalysis {
   lowestPriceByCategory: Array<{
@@ -114,6 +115,8 @@ export default function PriceAnalysis({ refreshTrigger }: PriceAnalysisProps) {
           )
         )}
       </div>
+
+      <CategoryPriceAnalysis />
     </div>
   );
 } 

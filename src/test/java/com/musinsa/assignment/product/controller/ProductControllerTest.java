@@ -169,4 +169,56 @@ class ProductControllerTest {
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.message").value("No brand covers all categories."));
     }
+
+    @Test
+    @DisplayName("카테고리별 최고/최저가 정보를 조회한다")
+    void getCategoryPriceInfo() throws Exception {
+        // given
+        Map<String, Object> response = new HashMap<>();
+        Map<String, Object> highest = new HashMap<>();
+        highest.put("brand", "Nike");
+        highest.put("price", 100000);
+        
+        Map<String, Object> lowest = new HashMap<>();
+        lowest.put("brand", "Adidas");
+        lowest.put("price", 50000);
+        
+        response.put("highest", highest);
+        response.put("lowest", lowest);
+
+        when(productService.getCategoryPriceInfo(Category.TOP))
+            .thenReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/category-price-info/TOP"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.highest.brand").value("Nike"))
+            .andExpect(jsonPath("$.highest.price").value(100000))
+            .andExpect(jsonPath("$.lowest.brand").value("Adidas"))
+            .andExpect(jsonPath("$.lowest.price").value(50000));
+    }
+
+    @Test
+    @DisplayName("상품을 수정한다")
+    void updateProduct() throws Exception {
+        // given
+        Product product = Product.builder()
+            .id(1L)
+            .brandName("Nike")
+            .category(Category.TOP)
+            .price(50000)
+            .build();
+
+        when(productService.save(any(Product.class))).thenReturn(product);
+
+        // when & then
+        mockMvc.perform(put("/api/products/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(product)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(1))
+            .andExpect(jsonPath("$.brandName").value("Nike"))
+            .andExpect(jsonPath("$.category").value("TOP"))
+            .andExpect(jsonPath("$.price").value(50000));
+    }
 } 
