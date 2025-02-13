@@ -10,6 +10,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.util.*;
 
@@ -182,5 +185,70 @@ class ProductServiceTest {
         // then
         assertThat(result)
             .containsEntry("message", "No brand covers all categories.");
+    }
+
+    @Test
+    @DisplayName("카테고리별 최고/최저가 정보를 조회한다")
+    void getCategoryPriceInfo() {
+        // given
+        Category category = Category.TOP;
+        Product highestProduct = Product.builder()
+            .id(1L)
+            .brandName("Nike")
+            .category(category)
+            .price(100000)
+            .build();
+        
+        Product lowestProduct = Product.builder()
+            .id(2L)
+            .brandName("Adidas")
+            .category(category)
+            .price(50000)
+            .build();
+
+        when(productRepository.findByHighestPriceInCategory(category))
+            .thenReturn(Collections.singletonList(highestProduct));
+        when(productRepository.findByLowestPriceInCategory(category))
+            .thenReturn(Collections.singletonList(lowestProduct));
+
+        // when
+        Map<String, Object> result = productService.getCategoryPriceInfo(category);
+
+        // then
+        @SuppressWarnings("unchecked")
+        Map<String, Object> highest = (Map<String, Object>) result.get("highest");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> lowest = (Map<String, Object>) result.get("lowest");
+
+        assertThat(highest)
+            .containsEntry("brand", "Nike")
+            .containsEntry("price", 100000);
+        
+        assertThat(lowest)
+            .containsEntry("brand", "Adidas")
+            .containsEntry("price", 50000);
+    }
+
+    @Test
+    @DisplayName("상품 목록을 ID 내림차순으로 조회한다")
+    void getAllProducts() {
+        // given
+        List<Product> products = Arrays.asList(
+            Product.builder().id(2L).brandName("Nike").category(Category.TOP).price(50000).build(),
+            Product.builder().id(1L).brandName("Adidas").category(Category.PANTS).price(45000).build()
+        );
+        Page<Product> page = new PageImpl<>(products);
+        
+        when(productRepository.findAllOrderByIdDesc(any(Pageable.class)))
+            .thenReturn(page);
+
+        // when
+        Page<Product> result = productService.getAllProducts(0, 10);
+
+        // then
+        assertThat(result.getContent())
+            .hasSize(2)
+            .extracting("id")
+            .containsExactly(2L, 1L);
     }
 } 
