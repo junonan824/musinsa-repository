@@ -2,6 +2,7 @@ package com.musinsa.assignment.product.repository;
 
 import com.musinsa.assignment.product.domain.Product;
 import com.musinsa.assignment.product.domain.Category;
+import com.musinsa.assignment.product.dto.CategoryPriceDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -35,4 +36,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Query("SELECT p FROM Product p ORDER BY p.id DESC")
     Page<Product> findAllOrderByIdDesc(Pageable pageable);
+
+    @Query("SELECT new com.musinsa.assignment.product.dto.CategoryPriceDto(" +
+           "p.category, p.brandName, p.price) " +
+           "FROM Product p " +
+           "WHERE (p.category, p.price) IN " +
+           "(SELECT p2.category, MIN(p2.price) " +
+           "FROM Product p2 GROUP BY p2.category)")
+    List<CategoryPriceDto> findLowestPricesGroupByCategory();
 }
