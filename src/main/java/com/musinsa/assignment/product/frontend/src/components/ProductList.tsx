@@ -4,6 +4,17 @@ import React from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
 
+const CATEGORIES = [
+  'TOP',
+  'OUTER',
+  'PANTS',
+  'SNEAKERS',
+  'BAG',
+  'HAT',
+  'SOCKS',
+  'ACCESSORY'
+] as const;
+
 interface Product {
   id: number;
   brandName: string;
@@ -28,6 +39,8 @@ export default function ProductList({ refreshTrigger, onDelete }: ProductListPro
   const [currentPage, setCurrentPage] = React.useState(0);
   const [totalPages, setTotalPages] = React.useState(0);
   const [pageSize] = React.useState(10);
+  const [editingId, setEditingId] = React.useState<number | null>(null);
+  const [editForm, setEditForm] = React.useState<Product | null>(null);
 
   React.useEffect(() => {
     fetchProducts();
@@ -58,25 +71,85 @@ export default function ProductList({ refreshTrigger, onDelete }: ProductListPro
     setCurrentPage(newPage);
   };
 
+  const handleEdit = (product: Product) => {
+    setEditingId(product.id);
+    setEditForm(product);
+  };
+
+  const handleUpdate = async () => {
+    if (!editForm) return;
+    
+    try {
+      await axios.put(`${API_BASE_URL}/products/${editForm.id}`, editForm);
+      setEditingId(null);
+      setEditForm(null);
+      onDelete(); // 목록 새로고침
+    } catch (error) {
+      console.error('Failed to update product:', error);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="table-container">
         <table className="musinsa-table">
           <thead>
             <tr className="musinsa-table-header">
-              <th className="w-1/4">브랜드</th>
-              <th className="w-1/4">카테고리</th>
-              <th className="w-1/4">가격</th>
-              <th className="w-1/4">관리</th>
+              <th className="w-1/5">브랜드</th>
+              <th className="w-1/5">카테고리</th>
+              <th className="w-1/5">가격</th>
+              <th className="w-2/5">관리</th>
             </tr>
           </thead>
           <tbody>
             {products.map((product) => (
               <tr key={product.id} className="hover:bg-gray-50 transition-colors">
-                <td>{product.brandName}</td>
-                <td>{product.category}</td>
-                <td>{product.price.toLocaleString()}원</td>
-                <td className="text-right">
+                <td>
+                  {editingId === product.id ? (
+                    <input
+                      type="text"
+                      value={editForm?.brandName || ''}
+                      onChange={(e) => setEditForm(prev => prev ? {...prev, brandName: e.target.value} : null)}
+                      className="w-full px-2 py-1 border rounded"
+                    />
+                  ) : (
+                    product.brandName
+                  )}
+                </td>
+                <td>
+                  {editingId === product.id ? (
+                    <select
+                      value={editForm?.category || 'TOP'}
+                      onChange={(e) => setEditForm(prev => prev ? {...prev, category: e.target.value} : null)}
+                      className="w-full px-2 py-1 border rounded"
+                    >
+                      {CATEGORIES.map((category) => (
+                        <option key={category} value={category}>{category}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    product.category
+                  )}
+                </td>
+                <td>
+                  {editingId === product.id ? (
+                    <input
+                      type="number"
+                      value={editForm?.price || 0}
+                      onChange={(e) => setEditForm(prev => prev ? {...prev, price: parseInt(e.target.value)} : null)}
+                      className="w-full px-2 py-1 border rounded"
+                    />
+                  ) : (
+                    `${product.price.toLocaleString()}원`
+                  )}
+                </td>
+                <td className="space-x-2 text-right">
+                  <button
+                    onClick={() => editingId === product.id ? handleUpdate() : handleEdit(product)}
+                    className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors"
+                  >
+                    {editingId === product.id ? '수정완료' : '수정하기'}
+                  </button>
                   <button
                     onClick={() => handleDelete(product.id)}
                     className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors"

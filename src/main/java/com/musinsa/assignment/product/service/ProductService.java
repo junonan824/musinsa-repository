@@ -129,6 +129,33 @@ public class ProductService {
 
     public Page<Product> getAllProducts(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return productRepository.findAll(pageable);
+        return productRepository.findAllOrderByIdDesc(pageable);
+    }
+
+    public Map<String, Object> getCategoryPriceInfo(Category category) {
+        Map<String, Object> result = new HashMap<>();
+        
+        // 최고가 상품 조회
+        List<Product> highestPriceProducts = productRepository.findByHighestPriceInCategory(category);
+        // 최저가 상품 조회
+        List<Product> lowestPriceProducts = productRepository.findByLowestPriceInCategory(category);
+        
+        if (!highestPriceProducts.isEmpty() && !lowestPriceProducts.isEmpty()) {
+            Product highestProduct = highestPriceProducts.get(0);
+            Product lowestProduct = lowestPriceProducts.get(0);
+            
+            Map<String, Object> highest = new HashMap<>();
+            highest.put("brand", highestProduct.getBrandName());
+            highest.put("price", highestProduct.getPrice());
+            
+            Map<String, Object> lowest = new HashMap<>();
+            lowest.put("brand", lowestProduct.getBrandName());
+            lowest.put("price", lowestProduct.getPrice());
+            
+            result.put("highest", highest);
+            result.put("lowest", lowest);
+        }
+        
+        return result;
     }
 } 
