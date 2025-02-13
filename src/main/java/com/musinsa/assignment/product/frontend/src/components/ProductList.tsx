@@ -176,7 +176,7 @@ export default function ProductList({ refreshTrigger, onDelete }: ProductListPro
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 0}
-            className="px-3 py-1 border rounded disabled:opacity-50"
+            className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-100 transition-all"
           >
             이전
           </button>
@@ -185,9 +185,9 @@ export default function ProductList({ refreshTrigger, onDelete }: ProductListPro
             <button
               key={i}
               onClick={() => handlePageChange(i)}
-              className={`px-3 py-1 rounded ${
+              className={`px-3 py-1 rounded transition-all duration-200 ${
                 currentPage === i 
-                  ? 'bg-black text-white' 
+                  ? 'bg-black text-white font-bold scale-110 shadow-md' 
                   : 'border hover:bg-gray-100'
               }`}
             >
@@ -198,7 +198,7 @@ export default function ProductList({ refreshTrigger, onDelete }: ProductListPro
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages - 1}
-            className="px-3 py-1 border rounded disabled:opacity-50"
+            className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-100 transition-all"
           >
             다음
           </button>

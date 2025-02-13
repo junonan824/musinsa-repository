@@ -10,12 +10,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
 import com.musinsa.assignment.product.domain.Category;
-import java.util.Set;
 import java.util.stream.Collectors;
+import com.musinsa.assignment.product.dto.BrandCategoryPriceDto;
+import com.musinsa.assignment.product.dto.response.LowestPriceEachCategoryResponse;
+import com.musinsa.assignment.product.dto.response.LowestPriceSingleBrandResponse;
+import com.musinsa.assignment.product.dto.response.CategoryPriceInfoResponse;
+import java.util.NoSuchElementException;
 
 @Service
 public class ProductService {
@@ -47,84 +50,72 @@ public class ProductService {
             .orElseThrow(() -> new ProductNotFoundException(id));
     }
 
-    public Map<String, Object> getLowestPriceEachCategory() {
-        Map<String, Object> result = new HashMap<>();
-        List<Map<String, Object>> lowestPriceByCategory = new ArrayList<>();
+    public LowestPriceEachCategoryResponse getLowestPriceEachCategory() {
+        List<LowestPriceEachCategoryResponse.CategoryPrice> categoryPrices = new ArrayList<>();
         int totalPrice = 0;
 
         for (Category category : Category.values()) {
             List<Product> lowestPriceProducts = productRepository.findByLowestPriceInCategory(category);
             
             if (!lowestPriceProducts.isEmpty()) {
-                // Get the first product if there are multiple with same price
                 Product lowestPriceProduct = lowestPriceProducts.get(0);
                 
-                Map<String, Object> categoryInfo = new HashMap<>();
-                categoryInfo.put("category", category.getKorName());
-                categoryInfo.put("brand", lowestPriceProduct.getBrandName());
-                categoryInfo.put("price", lowestPriceProduct.getPrice());
+                categoryPrices.add(LowestPriceEachCategoryResponse.CategoryPrice.builder()
+                    .category(category.getKorName())
+                    .brand(lowestPriceProduct.getBrandName())
+                    .price(lowestPriceProduct.getPrice())
+                    .build());
                 
-                lowestPriceByCategory.add(categoryInfo);
                 totalPrice += lowestPriceProduct.getPrice();
             }
         }
 
-        result.put("lowestPriceByCategory", lowestPriceByCategory);
-        result.put("totalPrice", totalPrice);
-        
-        return result;
+        return LowestPriceEachCategoryResponse.builder()
+            .lowestPriceByCategory(categoryPrices)
+            .totalPrice(totalPrice)
+            .build();
     }
 
-    public Map<String, Object> getLowestPriceSingleBrand() {
-        Map<String, Object> result = new HashMap<>();
-        Set<String> allBrands = productRepository.findAllBrandNames();
-        
-        // Get all categories that have at least one product
-        Set<Category> existingCategories = productRepository.findAll().stream()
-            .map(Product::getCategory)
-            .collect(Collectors.toSet());
-        
+    public LowestPriceSingleBrandResponse getLowestPriceSingleBrand() {
+        List<BrandCategoryPriceDto> pricesByBrandAndCategory = productRepository.findLowestPricesByBrandAndCategory();
+        Map<String, List<BrandCategoryPriceDto>> brandGroups = pricesByBrandAndCategory.stream()
+            .collect(Collectors.groupingBy(BrandCategoryPriceDto::getBrandName));
+
         String selectedBrand = null;
         int lowestTotalPrice = Integer.MAX_VALUE;
-        
-        for (String brand : allBrands) {
-            // Check if this brand covers all existing categories
-            long categoryCount = productRepository.countCategoriesByBrand(brand);
-            if (categoryCount == existingCategories.size()) {
-                int brandTotalPrice = 0;
-                List<Map<String, Object>> categoryPrices = new ArrayList<>();
-                
-                // Calculate total price for this brand
-                for (Category category : existingCategories) {
-                    List<Product> products = productRepository.findLowestPriceProductByBrandAndCategory(brand, category);
-                    if (!products.isEmpty()) {
-                        Product lowestPriceProduct = products.get(0);
-                        brandTotalPrice += lowestPriceProduct.getPrice();
-                        
-                        Map<String, Object> categoryInfo = new HashMap<>();
-                        categoryInfo.put("category", category.getKorName());
-                        categoryInfo.put("price", lowestPriceProduct.getPrice());
-                        categoryPrices.add(categoryInfo);
-                    }
-                }
-                
-                // Update selected brand if this one has lower total price
-                if (brandTotalPrice < lowestTotalPrice) {
-                    lowestTotalPrice = brandTotalPrice;
+        List<LowestPriceSingleBrandResponse.CategoryPrice> selectedItems = null;
+
+        for (Map.Entry<String, List<BrandCategoryPriceDto>> entry : brandGroups.entrySet()) {
+            String brand = entry.getKey();
+            List<BrandCategoryPriceDto> items = entry.getValue();
+
+            if (items.size() == Category.values().length) {
+                int totalPrice = items.stream()
+                    .mapToInt(BrandCategoryPriceDto::getPrice)
+                    .sum();
+
+                if (totalPrice < lowestTotalPrice) {
+                    lowestTotalPrice = totalPrice;
                     selectedBrand = brand;
-                    result.put("items", categoryPrices);
+                    selectedItems = items.stream()
+                        .map(item -> LowestPriceSingleBrandResponse.CategoryPrice.builder()
+                            .category(item.getCategory().getKorName())
+                            .price(item.getPrice())
+                            .build())
+                        .collect(Collectors.toList());
                 }
             }
         }
-        
+
         if (selectedBrand == null) {
-            result.put("message", "No brand covers all categories.");
-        } else {
-            result.put("brand", selectedBrand);
-            result.put("totalPrice", lowestTotalPrice);
+            throw new NoSuchElementException("No brand covers all categories.");
         }
-        
-        return result;
+
+        return LowestPriceSingleBrandResponse.builder()
+            .brand(selectedBrand)
+            .totalPrice(lowestTotalPrice)
+            .items(selectedItems)
+            .build();
     }
 
     public Page<Product> getAllProducts(int page, int size) {
@@ -132,30 +123,26 @@ public class ProductService {
         return productRepository.findAllOrderByIdDesc(pageable);
     }
 
-    public Map<String, Object> getCategoryPriceInfo(Category category) {
-        Map<String, Object> result = new HashMap<>();
-        
-        // 최고가 상품 조회
+    public CategoryPriceInfoResponse getCategoryPriceInfo(Category category) {
         List<Product> highestPriceProducts = productRepository.findByHighestPriceInCategory(category);
-        // 최저가 상품 조회
         List<Product> lowestPriceProducts = productRepository.findByLowestPriceInCategory(category);
         
-        if (!highestPriceProducts.isEmpty() && !lowestPriceProducts.isEmpty()) {
-            Product highestProduct = highestPriceProducts.get(0);
-            Product lowestProduct = lowestPriceProducts.get(0);
-            
-            Map<String, Object> highest = new HashMap<>();
-            highest.put("brand", highestProduct.getBrandName());
-            highest.put("price", highestProduct.getPrice());
-            
-            Map<String, Object> lowest = new HashMap<>();
-            lowest.put("brand", lowestProduct.getBrandName());
-            lowest.put("price", lowestProduct.getPrice());
-            
-            result.put("highest", highest);
-            result.put("lowest", lowest);
+        if (highestPriceProducts.isEmpty() || lowestPriceProducts.isEmpty()) {
+            throw new NoSuchElementException("No products found for category: " + category);
         }
+
+        Product highestProduct = highestPriceProducts.get(0);
+        Product lowestProduct = lowestPriceProducts.get(0);
         
-        return result;
+        return CategoryPriceInfoResponse.builder()
+            .highest(CategoryPriceInfoResponse.BrandPrice.builder()
+                .brand(highestProduct.getBrandName())
+                .price(highestProduct.getPrice())
+                .build())
+            .lowest(CategoryPriceInfoResponse.BrandPrice.builder()
+                .brand(lowestProduct.getBrandName())
+                .price(lowestProduct.getPrice())
+                .build())
+            .build();
     }
 } 

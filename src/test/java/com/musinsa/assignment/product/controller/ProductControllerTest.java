@@ -5,11 +5,16 @@ import com.musinsa.assignment.product.domain.Category;
 import com.musinsa.assignment.product.domain.Product;
 import com.musinsa.assignment.product.exception.ProductNotFoundException;
 import com.musinsa.assignment.product.service.ProductService;
+import com.musinsa.assignment.product.dto.response.LowestPriceEachCategoryResponse;
+import com.musinsa.assignment.product.dto.response.LowestPriceSingleBrandResponse;
+import com.musinsa.assignment.product.dto.response.CategoryPriceInfoResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -41,18 +46,24 @@ class ProductControllerTest {
             Product.builder().id(1L).brandName("Nike").category(Category.TOP).price(50000).build(),
             Product.builder().id(2L).brandName("Adidas").category(Category.PANTS).price(35000).build()
         );
-        when(productService.findAll()).thenReturn(products);
+        Page<Product> page = new PageImpl<>(products);
+        when(productService.getAllProducts(0, 10)).thenReturn(page);
 
         // when & then
-        mockMvc.perform(get("/api/products"))
+        mockMvc.perform(get("/api/products")
+                .param("page", "0")
+                .param("size", "10"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$[0].id").value(1))
-            .andExpect(jsonPath("$[0].brandName").value("Nike"))
-            .andExpect(jsonPath("$[0].category").value("TOP"))
-            .andExpect(jsonPath("$[0].price").value(50000))
-            .andExpect(jsonPath("$[1].id").value(2))
-            .andExpect(jsonPath("$[1].brandName").value("Adidas"));
+            .andExpect(jsonPath("$.products[0].id").value(1))
+            .andExpect(jsonPath("$.products[0].brandName").value("Nike"))
+            .andExpect(jsonPath("$.products[0].category").value("TOP"))
+            .andExpect(jsonPath("$.products[0].price").value(50000))
+            .andExpect(jsonPath("$.products[1].id").value(2))
+            .andExpect(jsonPath("$.products[1].brandName").value("Adidas"))
+            .andExpect(jsonPath("$.currentPage").value(0))
+            .andExpect(jsonPath("$.totalItems").value(2))
+            .andExpect(jsonPath("$.totalPages").value(1));
     }
 
     @Test
@@ -110,63 +121,74 @@ class ProductControllerTest {
     @DisplayName("카테고리별 최저가격 상품을 조회한다")
     void getLowestPriceByCategory() throws Exception {
         // given
-        Map<String, Object> response = new HashMap<>();
-        List<Map<String, Object>> lowestPriceByCategory = Arrays.asList(
-            Map.of("category", "상의", "brand", "Adidas", "price", 45000),
-            Map.of("category", "바지", "brand", "Adidas", "price", 35000),
-            Map.of("category", "스니커즈", "brand", "Adidas", "price", 55000)
-        );
-        response.put("lowestPriceByCategory", lowestPriceByCategory);
-        response.put("totalPrice", 135000);
+        LowestPriceEachCategoryResponse response = LowestPriceEachCategoryResponse.builder()
+            .lowestPriceByCategory(Arrays.asList(
+                LowestPriceEachCategoryResponse.CategoryPrice.builder()
+                    .category("상의")
+                    .brand("Adidas")
+                    .price(45000)
+                    .build(),
+                LowestPriceEachCategoryResponse.CategoryPrice.builder()
+                    .category("바지")
+                    .brand("Adidas")
+                    .price(35000)
+                    .build()
+            ))
+            .totalPrice(80000)
+            .build();
 
         when(productService.getLowestPriceEachCategory()).thenReturn(response);
 
         // when & then
         mockMvc.perform(get("/api/lowest-price-by-category"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.totalPrice").value(135000))
+            .andExpect(jsonPath("$.totalPrice").value(80000))
             .andExpect(jsonPath("$.lowestPriceByCategory[0].category").value("상의"))
             .andExpect(jsonPath("$.lowestPriceByCategory[0].brand").value("Adidas"))
             .andExpect(jsonPath("$.lowestPriceByCategory[0].price").value(45000));
     }
 
     @Test
-    @DisplayName("모든 카테고리 상품이 있는 브랜드 중 최저가 브랜드를 조회한다")
+    @DisplayName("단일 브랜드 최저가격 상품을 조회한다")
     void getLowestPriceSingleBrand() throws Exception {
         // given
-        Map<String, Object> response = new HashMap<>();
-        List<Map<String, Object>> items = Arrays.asList(
-            Map.of("category", "상의", "price", 45000),
-            Map.of("category", "바지", "price", 35000),
-            Map.of("category", "스니커즈", "price", 55000)
-        );
-        response.put("brand", "Adidas");
-        response.put("totalPrice", 135000);
-        response.put("items", items);
+        LowestPriceSingleBrandResponse response = LowestPriceSingleBrandResponse.builder()
+            .brand("Nike")
+            .totalPrice(270000)
+            .items(Arrays.asList(
+                LowestPriceSingleBrandResponse.CategoryPrice.builder()
+                    .category("상의")
+                    .price(50000)
+                    .build(),
+                LowestPriceSingleBrandResponse.CategoryPrice.builder()
+                    .category("바지")
+                    .price(40000)
+                    .build()
+            ))
+            .build();
 
         when(productService.getLowestPriceSingleBrand()).thenReturn(response);
 
         // when & then
         mockMvc.perform(get("/api/lowest-price-single-brand"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.brand").value("Adidas"))
-            .andExpect(jsonPath("$.totalPrice").value(135000))
+            .andExpect(jsonPath("$.brand").value("Nike"))
+            .andExpect(jsonPath("$.totalPrice").value(270000))
             .andExpect(jsonPath("$.items[0].category").value("상의"))
-            .andExpect(jsonPath("$.items[0].price").value(45000));
+            .andExpect(jsonPath("$.items[0].price").value(50000));
     }
 
     @Test
     @DisplayName("모든 카테고리를 커버하는 브랜드가 없으면 404 응답을 반환한다")
     void getLowestPriceSingleBrand_NoBrandCoversAllCategories() throws Exception {
         // given
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "No brand covers all categories.");
-
-        when(productService.getLowestPriceSingleBrand()).thenReturn(response);
+        when(productService.getLowestPriceSingleBrand())
+            .thenThrow(new NoSuchElementException("No brand covers all categories."));
 
         // when & then
         mockMvc.perform(get("/api/lowest-price-single-brand"))
             .andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.message").value("No brand covers all categories."));
     }
 
@@ -174,20 +196,18 @@ class ProductControllerTest {
     @DisplayName("카테고리별 최고/최저가 정보를 조회한다")
     void getCategoryPriceInfo() throws Exception {
         // given
-        Map<String, Object> response = new HashMap<>();
-        Map<String, Object> highest = new HashMap<>();
-        highest.put("brand", "Nike");
-        highest.put("price", 100000);
-        
-        Map<String, Object> lowest = new HashMap<>();
-        lowest.put("brand", "Adidas");
-        lowest.put("price", 50000);
-        
-        response.put("highest", highest);
-        response.put("lowest", lowest);
+        CategoryPriceInfoResponse response = CategoryPriceInfoResponse.builder()
+            .highest(CategoryPriceInfoResponse.BrandPrice.builder()
+                .brand("Nike")
+                .price(100000)
+                .build())
+            .lowest(CategoryPriceInfoResponse.BrandPrice.builder()
+                .brand("Adidas")
+                .price(50000)
+                .build())
+            .build();
 
-        when(productService.getCategoryPriceInfo(Category.TOP))
-            .thenReturn(response);
+        when(productService.getCategoryPriceInfo(Category.TOP)).thenReturn(response);
 
         // when & then
         mockMvc.perform(get("/api/category-price-info/TOP"))

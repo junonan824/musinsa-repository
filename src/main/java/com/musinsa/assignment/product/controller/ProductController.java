@@ -3,14 +3,21 @@ package com.musinsa.assignment.product.controller;
 import com.musinsa.assignment.product.domain.Category;
 import com.musinsa.assignment.product.domain.Product;
 import com.musinsa.assignment.product.service.ProductService;
+import com.musinsa.assignment.product.exception.ProductNotFoundException;
+import com.musinsa.assignment.product.dto.response.ErrorResponse;
+import com.musinsa.assignment.product.dto.response.LowestPriceEachCategoryResponse;
+import com.musinsa.assignment.product.dto.response.LowestPriceSingleBrandResponse;
+import com.musinsa.assignment.product.dto.response.CategoryPriceInfoResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api")
@@ -52,26 +59,22 @@ public class ProductController {
     }
 
     @GetMapping("/lowest-price-by-category")
-    public ResponseEntity<Map<String, Object>> getLowestPriceByCategory() {
-        Map<String, Object> result = productService.getLowestPriceEachCategory();
-        return ResponseEntity.ok(result);
+    public ResponseEntity<LowestPriceEachCategoryResponse> getLowestPriceByCategory() {
+        return ResponseEntity.ok(productService.getLowestPriceEachCategory());
     }
 
     @GetMapping("/lowest-price-single-brand")
-    public ResponseEntity<Map<String, Object>> getLowestPriceSingleBrand() {
-        Map<String, Object> result = productService.getLowestPriceSingleBrand();
-        
-        if (result.containsKey("message")) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
-        }
-        
-        return ResponseEntity.ok(result);
+    public ResponseEntity<LowestPriceSingleBrandResponse> getLowestPriceSingleBrand() {
+        return ResponseEntity.ok(productService.getLowestPriceSingleBrand());
     }
 
     @GetMapping("/category-price-info/{category}")
-    public ResponseEntity<Map<String, Object>> getCategoryPriceInfo(@PathVariable String category) {
-        Map<String, Object> result = productService.getCategoryPriceInfo(Category.valueOf(category));
-        return ResponseEntity.ok(result);
+    public ResponseEntity<CategoryPriceInfoResponse> getCategoryPriceInfo(
+        @PathVariable String category
+    ) {
+        return ResponseEntity.ok(
+            productService.getCategoryPriceInfo(Category.valueOf(category))
+        );
     }
 
     @PutMapping("/products/{id}")
@@ -82,5 +85,14 @@ public class ProductController {
         product.setId(id);
         Product updatedProduct = productService.save(product);
         return ResponseEntity.ok(updatedProduct);
+    }
+
+    @ExceptionHandler({NoSuchElementException.class, ProductNotFoundException.class})
+    public ResponseEntity<ErrorResponse> handleNotFoundException(Exception e) {
+        ErrorResponse errorResponse = new ErrorResponse(e.getMessage());
+        return ResponseEntity
+            .status(HttpStatus.NOT_FOUND)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(errorResponse);
     }
 } 
