@@ -3,6 +3,10 @@ package com.musinsa.assignment.product.service;
 import com.musinsa.assignment.product.domain.Category;
 import com.musinsa.assignment.product.domain.Product;
 import com.musinsa.assignment.product.repository.ProductRepository;
+import com.musinsa.assignment.product.dto.BrandCategoryPriceDto;
+import com.musinsa.assignment.product.dto.response.LowestPriceEachCategoryResponse;
+import com.musinsa.assignment.product.dto.response.LowestPriceSingleBrandResponse;
+import com.musinsa.assignment.product.dto.response.CategoryPriceInfoResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,6 +24,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
@@ -54,52 +60,30 @@ class ProductServiceTest {
     }
 
     @Test
-    @DisplayName("각 카테고리별 최저가격 상품을 조회한다")
+    @DisplayName("각 카테고리별 최저가격 상품을 DTO로 변환하여 반환한다")
     void getLowestPriceEachCategory() {
         // given
         lenient().when(productRepository.findByLowestPriceInCategory(Category.TOP))
             .thenReturn(Collections.singletonList(testProducts.get(1))); // Adidas TOP 45000
         lenient().when(productRepository.findByLowestPriceInCategory(Category.PANTS))
             .thenReturn(Collections.singletonList(testProducts.get(3))); // Adidas PANTS 35000
-        lenient().when(productRepository.findByLowestPriceInCategory(Category.SNEAKERS))
-            .thenReturn(Collections.singletonList(testProducts.get(5))); // Adidas SNEAKERS 55000
 
         // when
-        Map<String, Object> result = productService.getLowestPriceEachCategory();
+        LowestPriceEachCategoryResponse response = productService.getLowestPriceEachCategory();
 
         // then
-        @SuppressWarnings("unchecked")
-        List<Map<String, Object>> lowestPriceByCategory = (List<Map<String, Object>>) result.get("lowestPriceByCategory");
-        int totalPrice = (int) result.get("totalPrice");
-
-        assertThat(lowestPriceByCategory).hasSize(3);
-        assertThat(totalPrice).isEqualTo(135000); // 45000 + 35000 + 55000
-
-        // Verify the presence of all expected prices without order
-        assertThat(lowestPriceByCategory)
-            .extracting("price")
-            .containsExactlyInAnyOrder(35000, 45000, 55000);
-
-        // Verify all brands are Adidas
-        assertThat(lowestPriceByCategory)
-            .extracting("brand")
-            .containsOnly("Adidas");
-
-        // Verify each category has the correct price
-        for (Map<String, Object> item : lowestPriceByCategory) {
-            String category = (String) item.get("category");
-            int price = (int) item.get("price");
-            
-            switch (category) {
-                case "상의" -> assertThat(price).isEqualTo(45000);
-                case "바지" -> assertThat(price).isEqualTo(35000);
-                case "스니커즈" -> assertThat(price).isEqualTo(55000);
-            }
-        }
+        assertThat(response.getTotalPrice()).isEqualTo(80000);
+        assertThat(response.getLowestPriceByCategory())
+            .hasSize(2)
+            .extracting("brand", "price", "category")
+            .containsExactlyInAnyOrder(
+                tuple("Adidas", 45000, "상의"),
+                tuple("Adidas", 35000, "바지")
+            );
     }
 
     @Test
-    @DisplayName("모든 카테고리 상품이 있는 브랜드 중 최저가 브랜드를 조회한다")
+    @DisplayName("모든 카테고리 상품이 있는 브랜드 중 최저가 브랜드를 DTO로 변환하여 반환한다")
     void getLowestPriceSingleBrand() {
         // given
         List<BrandCategoryPriceDto> mockData = Arrays.asList(
@@ -110,45 +94,35 @@ class ProductServiceTest {
             new BrandCategoryPriceDto("Nike", Category.BAG, 20000),
             new BrandCategoryPriceDto("Nike", Category.HAT, 15000),
             new BrandCategoryPriceDto("Nike", Category.SOCKS, 3000),
-            new BrandCategoryPriceDto("Nike", Category.ACCESSORY, 12000),
-            new BrandCategoryPriceDto("Adidas", Category.TOP, 45000),
-            // ... Adidas의 나머지 카테고리들
+            new BrandCategoryPriceDto("Nike", Category.ACCESSORY, 12000)
         );
 
         when(productRepository.findLowestPricesByBrandAndCategory())
             .thenReturn(mockData);
 
         // when
-        Map<String, Object> result = productService.getLowestPriceSingleBrand();
+        LowestPriceSingleBrandResponse response = productService.getLowestPriceSingleBrand();
 
         // then
-        assertThat(result.get("brand")).isEqualTo("Nike");
-        // ... 나머지 검증 로직
+        assertThat(response.getBrand()).isEqualTo("Nike");
+        assertThat(response.getTotalPrice()).isEqualTo(270000);
+        assertThat(response.getItems())
+            .hasSize(8)
+            .extracting("category", "price")
+            .containsExactlyInAnyOrder(
+                tuple("상의", 50000),
+                tuple("바지", 40000),
+                tuple("스니커즈", 60000),
+                tuple("아우터", 70000),
+                tuple("가방", 20000),
+                tuple("모자", 15000),
+                tuple("양말", 3000),
+                tuple("액세서리", 12000)
+            );
     }
 
     @Test
-    @DisplayName("모든 카테고리를 커버하는 브랜드가 없으면 에러 메시지를 반환한다")
-    void getLowestPriceSingleBrand_NoBrandCoversAllCategories() {
-        // given
-        when(productRepository.findAllBrandNames())
-            .thenReturn(new HashSet<>(Arrays.asList("Nike", "Adidas")));
-        
-        when(productRepository.findAll())
-            .thenReturn(testProducts);
-
-        when(productRepository.countCategoriesByBrand(any()))
-            .thenReturn(2L); // Both brands cover only 2 categories
-
-        // when
-        Map<String, Object> result = productService.getLowestPriceSingleBrand();
-
-        // then
-        assertThat(result)
-            .containsEntry("message", "No brand covers all categories.");
-    }
-
-    @Test
-    @DisplayName("카테고리별 최고/최저가 정보를 조회한다")
+    @DisplayName("특정 카테고리의 최고/최저가 정보를 DTO로 변환하여 반환한다")
     void getCategoryPriceInfo() {
         // given
         Category category = Category.TOP;
@@ -172,21 +146,16 @@ class ProductServiceTest {
             .thenReturn(Collections.singletonList(lowestProduct));
 
         // when
-        Map<String, Object> result = productService.getCategoryPriceInfo(category);
+        CategoryPriceInfoResponse response = productService.getCategoryPriceInfo(category);
 
         // then
-        @SuppressWarnings("unchecked")
-        Map<String, Object> highest = (Map<String, Object>) result.get("highest");
-        @SuppressWarnings("unchecked")
-        Map<String, Object> lowest = (Map<String, Object>) result.get("lowest");
-
-        assertThat(highest)
-            .containsEntry("brand", "Nike")
-            .containsEntry("price", 100000);
+        assertThat(response.getHighest())
+            .extracting("brand", "price")
+            .containsExactly("Nike", 100000);
         
-        assertThat(lowest)
-            .containsEntry("brand", "Adidas")
-            .containsEntry("price", 50000);
+        assertThat(response.getLowest())
+            .extracting("brand", "price")
+            .containsExactly("Adidas", 50000);
     }
 
     @Test
@@ -210,5 +179,24 @@ class ProductServiceTest {
             .hasSize(2)
             .extracting("id")
             .containsExactly(2L, 1L);
+    }
+
+    @Test
+    @DisplayName("모든 카테고리를 커버하는 브랜드가 없으면 예외를 던진다")
+    void getLowestPriceSingleBrand_NoBrandCoversAllCategories() {
+        // given
+        List<BrandCategoryPriceDto> mockData = Arrays.asList(
+            new BrandCategoryPriceDto("Nike", Category.TOP, 50000),
+            new BrandCategoryPriceDto("Nike", Category.PANTS, 40000)
+            // 일부 카테고리만 있는 상태
+        );
+
+        when(productRepository.findLowestPricesByBrandAndCategory())
+            .thenReturn(mockData);
+
+        // when & then
+        assertThrows(NoSuchElementException.class, () -> {
+            productService.getLowestPriceSingleBrand();
+        });
     }
 } 
