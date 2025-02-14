@@ -39,11 +39,16 @@ export default function PriceAnalysis({ refreshTrigger }: PriceAnalysisProps) {
   const fetchAnalysis = async () => {
     try {
       const [categoryResponse, brandResponse] = await Promise.all([
-        axios.get(`${API_BASE_URL}/lowest-price-by-category`),
-        axios.get(`${API_BASE_URL}/lowest-price-single-brand`)
+        axios.get<ApiResponse<CategoryAnalysis>>(`${API_BASE_URL}/lowest-price-by-category`),
+        axios.get<ApiResponse<BrandAnalysis>>(`${API_BASE_URL}/lowest-price-single-brand`)
       ]);
-      setCategoryAnalysis(categoryResponse.data);
-      setBrandAnalysis(brandResponse.data);
+      
+      if (categoryResponse.data.success) {
+        setCategoryAnalysis(categoryResponse.data.data);
+      }
+      if (brandResponse.data.success) {
+        setBrandAnalysis(brandResponse.data.data);
+      }
     } catch (error) {
       console.error('Failed to fetch analysis:', error);
     }

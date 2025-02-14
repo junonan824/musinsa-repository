@@ -36,8 +36,12 @@ export default function CategoryPriceAnalysis() {
 
   const fetchCategoryPriceInfo = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/category-price-info/${selectedCategory}`);
-      setPriceInfo(response.data);
+      const response = await axios.get<ApiResponse<PriceInfo>>(
+        `${API_BASE_URL}/category-price-info/${selectedCategory}`
+      );
+      if (response.data.success) {
+        setPriceInfo(response.data.data);
+      }
     } catch (error) {
       console.error('Failed to fetch category price info:', error);
     }

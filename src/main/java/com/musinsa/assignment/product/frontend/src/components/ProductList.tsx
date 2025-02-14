@@ -29,6 +29,11 @@ interface PageInfo {
   totalPages: number;
 }
 
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+}
+
 interface ProductListProps {
   refreshTrigger: number;
   onDelete: () => void;
@@ -48,11 +53,13 @@ export default function ProductList({ refreshTrigger, onDelete }: ProductListPro
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get<PageInfo>(
+      const response = await axios.get<ApiResponse<PageInfo>>(
         `${API_BASE_URL}/products?page=${currentPage}&size=${pageSize}`
       );
-      setProducts(response.data.products);
-      setTotalPages(response.data.totalPages);
+      if (response.data.success) {
+        setProducts(response.data.data.products);
+        setTotalPages(response.data.data.totalPages);
+      }
     } catch (error) {
       console.error('Failed to fetch products:', error);
     }
@@ -60,8 +67,10 @@ export default function ProductList({ refreshTrigger, onDelete }: ProductListPro
 
   const handleDelete = async (id: number) => {
     try {
-      await axios.delete(`${API_BASE_URL}/products/${id}`);
-      onDelete();
+      const response = await axios.delete<ApiResponse<void>>(`${API_BASE_URL}/products/${id}`);
+      if (response.data.success) {
+        onDelete();
+      }
     } catch (error) {
       console.error('Failed to delete product:', error);
     }
@@ -80,10 +89,15 @@ export default function ProductList({ refreshTrigger, onDelete }: ProductListPro
     if (!editForm) return;
     
     try {
-      await axios.put(`${API_BASE_URL}/products/${editForm.id}`, editForm);
-      setEditingId(null);
-      setEditForm(null);
-      onDelete(); // 목록 새로고침
+      const response = await axios.put<ApiResponse<Product>>(
+        `${API_BASE_URL}/products/${editForm.id}`, 
+        editForm
+      );
+      if (response.data.success) {
+        setEditingId(null);
+        setEditForm(null);
+        onDelete(); // 목록 새로고침
+      }
     } catch (error) {
       console.error('Failed to update product:', error);
     }

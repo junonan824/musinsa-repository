@@ -55,15 +55,16 @@ class ProductControllerTest {
                 .param("size", "10"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.products[0].id").value(1))
-            .andExpect(jsonPath("$.products[0].brandName").value("Nike"))
-            .andExpect(jsonPath("$.products[0].category").value("TOP"))
-            .andExpect(jsonPath("$.products[0].price").value(50000))
-            .andExpect(jsonPath("$.products[1].id").value(2))
-            .andExpect(jsonPath("$.products[1].brandName").value("Adidas"))
-            .andExpect(jsonPath("$.currentPage").value(0))
-            .andExpect(jsonPath("$.totalItems").value(2))
-            .andExpect(jsonPath("$.totalPages").value(1));
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.data.products[0].id").value(1))
+            .andExpect(jsonPath("$.data.products[0].brandName").value("Nike"))
+            .andExpect(jsonPath("$.data.products[0].category").value("TOP"))
+            .andExpect(jsonPath("$.data.products[0].price").value(50000))
+            .andExpect(jsonPath("$.data.products[1].id").value(2))
+            .andExpect(jsonPath("$.data.products[1].brandName").value("Adidas"))
+            .andExpect(jsonPath("$.data.currentPage").value(0))
+            .andExpect(jsonPath("$.data.totalItems").value(2))
+            .andExpect(jsonPath("$.data.totalPages").value(1));
     }
 
     @Test
@@ -90,10 +91,11 @@ class ProductControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(newProduct)))
             .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.id").value(1))
-            .andExpect(jsonPath("$.brandName").value("Nike"))
-            .andExpect(jsonPath("$.category").value("TOP"))
-            .andExpect(jsonPath("$.price").value(50000));
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.data.id").value(1))
+            .andExpect(jsonPath("$.data.brandName").value("Nike"))
+            .andExpect(jsonPath("$.data.category").value("TOP"))
+            .andExpect(jsonPath("$.data.price").value(50000));
     }
 
     @Test
@@ -101,7 +103,8 @@ class ProductControllerTest {
     void deleteProduct() throws Exception {
         // when & then
         mockMvc.perform(delete("/api/products/1"))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true));
     }
 
     @Test
@@ -114,7 +117,9 @@ class ProductControllerTest {
         // when & then
         mockMvc.perform(delete("/api/products/1"))
             .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.message").value("Product not found with id: 1"));
+            .andExpect(jsonPath("$.success").value(false))
+            .andExpect(jsonPath("$.error.status").value(404))
+            .andExpect(jsonPath("$.error.message").value("Product not found with id: 1"));
     }
 
     @Test
@@ -127,11 +132,6 @@ class ProductControllerTest {
                     .category("상의")
                     .brand("Adidas")
                     .price(45000)
-                    .build(),
-                LowestPriceEachCategoryResponse.CategoryPrice.builder()
-                    .category("바지")
-                    .brand("Adidas")
-                    .price(35000)
                     .build()
             ))
             .totalPrice(80000)
@@ -142,10 +142,11 @@ class ProductControllerTest {
         // when & then
         mockMvc.perform(get("/api/lowest-price-by-category"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.totalPrice").value(80000))
-            .andExpect(jsonPath("$.lowestPriceByCategory[0].category").value("상의"))
-            .andExpect(jsonPath("$.lowestPriceByCategory[0].brand").value("Adidas"))
-            .andExpect(jsonPath("$.lowestPriceByCategory[0].price").value(45000));
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.data.totalPrice").value(80000))
+            .andExpect(jsonPath("$.data.lowestPriceByCategory[0].category").value("상의"))
+            .andExpect(jsonPath("$.data.lowestPriceByCategory[0].brand").value("Adidas"))
+            .andExpect(jsonPath("$.data.lowestPriceByCategory[0].price").value(45000));
     }
 
     @Test
@@ -159,10 +160,6 @@ class ProductControllerTest {
                 LowestPriceSingleBrandResponse.CategoryPrice.builder()
                     .category("상의")
                     .price(50000)
-                    .build(),
-                LowestPriceSingleBrandResponse.CategoryPrice.builder()
-                    .category("바지")
-                    .price(40000)
                     .build()
             ))
             .build();
@@ -172,10 +169,11 @@ class ProductControllerTest {
         // when & then
         mockMvc.perform(get("/api/lowest-price-single-brand"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.brand").value("Nike"))
-            .andExpect(jsonPath("$.totalPrice").value(270000))
-            .andExpect(jsonPath("$.items[0].category").value("상의"))
-            .andExpect(jsonPath("$.items[0].price").value(50000));
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.data.brand").value("Nike"))
+            .andExpect(jsonPath("$.data.totalPrice").value(270000))
+            .andExpect(jsonPath("$.data.items[0].category").value("상의"))
+            .andExpect(jsonPath("$.data.items[0].price").value(50000));
     }
 
     @Test
@@ -189,7 +187,9 @@ class ProductControllerTest {
         mockMvc.perform(get("/api/lowest-price-single-brand"))
             .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.message").value("No brand covers all categories."));
+            .andExpect(jsonPath("$.success").value(false))
+            .andExpect(jsonPath("$.error.status").value(404))
+            .andExpect(jsonPath("$.error.message").value("No brand covers all categories."));
     }
 
     @Test
@@ -212,10 +212,11 @@ class ProductControllerTest {
         // when & then
         mockMvc.perform(get("/api/category-price-info/TOP"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.highest.brand").value("Nike"))
-            .andExpect(jsonPath("$.highest.price").value(100000))
-            .andExpect(jsonPath("$.lowest.brand").value("Adidas"))
-            .andExpect(jsonPath("$.lowest.price").value(50000));
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.data.highest.brand").value("Nike"))
+            .andExpect(jsonPath("$.data.highest.price").value(100000))
+            .andExpect(jsonPath("$.data.lowest.brand").value("Adidas"))
+            .andExpect(jsonPath("$.data.lowest.price").value(50000));
     }
 
     @Test
@@ -236,9 +237,10 @@ class ProductControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(product)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(1))
-            .andExpect(jsonPath("$.brandName").value("Nike"))
-            .andExpect(jsonPath("$.category").value("TOP"))
-            .andExpect(jsonPath("$.price").value(50000));
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.data.id").value(1))
+            .andExpect(jsonPath("$.data.brandName").value("Nike"))
+            .andExpect(jsonPath("$.data.category").value("TOP"))
+            .andExpect(jsonPath("$.data.price").value(50000));
     }
 } 

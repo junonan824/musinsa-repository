@@ -23,12 +23,14 @@ export default function ProductForm({ onSuccess }: ProductFormProps) {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await axios.post(`${API_BASE_URL}/products`, {
+      const response = await axios.post<ApiResponse<Product>>(`${API_BASE_URL}/products`, {
         ...formData,
         price: parseInt(formData.price)
       });
-      setFormData({ brandName: '', category: 'TOP', price: '' });
-      onSuccess();
+      if (response.data.success) {
+        setFormData({ brandName: '', category: 'TOP', price: '' });
+        onSuccess();
+      }
     } catch (error) {
       console.error('Failed to create product:', error);
     }
