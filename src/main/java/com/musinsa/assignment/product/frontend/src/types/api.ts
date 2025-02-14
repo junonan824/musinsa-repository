@@ -7,11 +7,7 @@ export interface ApiError {
 export interface ApiResponse<T> {
   success: boolean;
   data: T | null;
-  error?: {
-    status: number;
-    message: string;
-    details?: any;
-  };
+  error?: ApiError;
 }
 
 export interface Product {

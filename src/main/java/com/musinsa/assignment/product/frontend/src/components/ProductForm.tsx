@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { API_BASE_URL } from '../config/api';
 import { ApiResponse, Product } from '../types/api';
 import { handleApiError } from '../utils/errorHandler';
@@ -21,12 +21,10 @@ export default function ProductForm({ onSuccess }: ProductFormProps) {
     category: 'TOP' as typeof CATEGORIES[number],
     price: ''
   });
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string>('');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError(null);
-    
     try {
       const response = await axios.post<ApiResponse<Product>>(`${API_BASE_URL}/products`, {
         ...formData,
@@ -38,8 +36,7 @@ export default function ProductForm({ onSuccess }: ProductFormProps) {
         onSuccess();
       }
     } catch (err) {
-      const errorMessage = handleApiError(err);
-      setError(errorMessage);
+      setError(handleApiError(err as AxiosError));
     }
   };
 
