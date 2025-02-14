@@ -87,14 +87,15 @@ class ProductServiceTest {
     void getLowestPriceSingleBrand() {
         // given
         List<BrandCategoryPriceDto> mockData = Arrays.asList(
-            new BrandCategoryPriceDto("Nike", Category.TOP, 50000),
-            new BrandCategoryPriceDto("Nike", Category.PANTS, 40000),
-            new BrandCategoryPriceDto("Nike", Category.SNEAKERS, 60000),
-            new BrandCategoryPriceDto("Nike", Category.OUTER, 70000),
-            new BrandCategoryPriceDto("Nike", Category.BAG, 20000),
-            new BrandCategoryPriceDto("Nike", Category.HAT, 15000),
-            new BrandCategoryPriceDto("Nike", Category.SOCKS, 3000),
-            new BrandCategoryPriceDto("Nike", Category.ACCESSORY, 12000)
+            // D 브랜드 데이터 (총합: 36100)
+            new BrandCategoryPriceDto("D", Category.TOP, 10100),
+            new BrandCategoryPriceDto("D", Category.OUTER, 5100),
+            new BrandCategoryPriceDto("D", Category.PANTS, 3000),
+            new BrandCategoryPriceDto("D", Category.SNEAKERS, 9500),
+            new BrandCategoryPriceDto("D", Category.BAG, 2500),
+            new BrandCategoryPriceDto("D", Category.HAT, 1500),
+            new BrandCategoryPriceDto("D", Category.SOCKS, 2400),
+            new BrandCategoryPriceDto("D", Category.ACCESSORY, 2000)
         );
 
         when(productRepository.findLowestPricesByBrandAndCategory())
@@ -104,20 +105,20 @@ class ProductServiceTest {
         LowestPriceSingleBrandResponse response = productService.getLowestPriceSingleBrand();
 
         // then
-        assertThat(response.getBrand()).isEqualTo("Nike");
-        assertThat(response.getTotalPrice()).isEqualTo(270000);
+        assertThat(response.getBrand()).isEqualTo("D");
+        assertThat(response.getTotalPrice()).isEqualTo(36100);
         assertThat(response.getItems())
             .hasSize(8)
             .extracting("category", "price")
             .containsExactlyInAnyOrder(
-                tuple("상의", 50000),
-                tuple("바지", 40000),
-                tuple("스니커즈", 60000),
-                tuple("아우터", 70000),
-                tuple("가방", 20000),
-                tuple("모자", 15000),
-                tuple("양말", 3000),
-                tuple("액세서리", 12000)
+                tuple("상의", 10100),
+                tuple("아우터", 5100),
+                tuple("바지", 3000),
+                tuple("스니커즈", 9500),
+                tuple("가방", 2500),
+                tuple("모자", 1500),
+                tuple("양말", 2400),
+                tuple("액세서리", 2000)
             );
     }
 

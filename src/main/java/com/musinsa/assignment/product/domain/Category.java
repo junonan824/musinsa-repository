@@ -8,7 +8,7 @@ public enum Category {
     BAG("가방"),
     HAT("모자"),
     SOCKS("양말"),
-    ACCESSORY("엑세서리");
+    ACCESSORY("액세서리");
 
     private final String korName;
 

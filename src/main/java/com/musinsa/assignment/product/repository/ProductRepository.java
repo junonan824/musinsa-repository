@@ -53,4 +53,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
            "(SELECT p2.brandName, p2.category, MIN(p2.price) " +
            "FROM Product p2 GROUP BY p2.brandName, p2.category)")
     List<BrandCategoryPriceDto> findLowestPricesByBrandAndCategory();
+
+    @Query("SELECT p FROM Product p WHERE p.category = :category")
+    List<Product> findByCategory(Category category);
 }
