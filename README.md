@@ -4,6 +4,11 @@
 
 ### 백엔드 (Spring Boot)
 
+#### 프로젝트 구조
+- Controller-Service-Repository 계층 구조
+- Domain, DTO, Exception 등 명확한 패키지 구조
+- 글로벌 예외 처리 구현
+
 1. **데이터 초기화**
 - 9개 브랜드(A-I)의 8개 카테고리별 가격 데이터 초기화
 - H2 인메모리 데이터베이스 사용
@@ -19,6 +24,16 @@
 3. **예외 처리**
 - 글로벌 예외 처리 구현
 - 404, 400 등 HTTP 상태 코드 적절히 반환
+
+
+5. **테스트 커버리지**
+- 단위 테스트와 통합 테스트 구현
+- Controller, Service 레벨 테스트
+- JPA Repository 테스트
+
+6. **데이터 접근**
+- JPA Repository 최적화된 쿼리 메소드
+- JPQL을 활용한 복잡한 쿼리 구현
 
 ### 프론트엔드 (Next.js)
 
@@ -39,6 +54,7 @@
 ### 기술 스택
 ```markdown
 - Backend: Spring Boot, JPA, H2 Database
+- API 문서화: Swagger
 - Frontend: Next.js, TypeScript, Tailwind CSS
 - 개발 도구: Gradle, npm
 ```

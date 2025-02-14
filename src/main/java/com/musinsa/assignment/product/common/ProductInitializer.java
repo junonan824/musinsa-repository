@@ -4,28 +4,33 @@ import com.musinsa.assignment.product.domain.Category;
 import com.musinsa.assignment.product.domain.Product;
 import com.musinsa.assignment.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
 
-@Configuration
+@Component
 @RequiredArgsConstructor
-public class ProductInitializer {
+@Slf4j
+public class ProductInitializer implements CommandLineRunner {
 
     private final ProductRepository productRepository;
 
-    @Bean
-    public CommandLineRunner initProductData() {
-        return args -> {
+    @Override
+    @Transactional
+    public void run(String... args) {
+        try {
             if (productRepository.count() > 0) {
-                return; // Skip if data already exists
+                log.info("Data already exists, skipping initialization");
+                return;
             }
 
-            List<Product> initialProducts = Arrays.asList(
-                // A
+            List<Product> products = Arrays.asList(
+                // A 브랜드
                 createProduct("A", Category.TOP, 11200),
                 createProduct("A", Category.OUTER, 5500),
                 createProduct("A", Category.PANTS, 4200),
@@ -35,7 +40,7 @@ public class ProductInitializer {
                 createProduct("A", Category.SOCKS, 1800),
                 createProduct("A", Category.ACCESSORY, 2300),
 
-                // B
+                // B 브랜드
                 createProduct("B", Category.TOP, 10500),
                 createProduct("B", Category.OUTER, 5900),
                 createProduct("B", Category.PANTS, 3800),
@@ -45,7 +50,7 @@ public class ProductInitializer {
                 createProduct("B", Category.SOCKS, 2000),
                 createProduct("B", Category.ACCESSORY, 2200),
 
-                // C
+                // C 브랜드
                 createProduct("C", Category.TOP, 10000),
                 createProduct("C", Category.OUTER, 6200),
                 createProduct("C", Category.PANTS, 3300),
@@ -55,7 +60,7 @@ public class ProductInitializer {
                 createProduct("C", Category.SOCKS, 2200),
                 createProduct("C", Category.ACCESSORY, 2100),
 
-                // D
+                // D 브랜드
                 createProduct("D", Category.TOP, 10100),
                 createProduct("D", Category.OUTER, 5100),
                 createProduct("D", Category.PANTS, 3000),
@@ -65,7 +70,7 @@ public class ProductInitializer {
                 createProduct("D", Category.SOCKS, 2400),
                 createProduct("D", Category.ACCESSORY, 2000),
 
-                // E
+                // E 브랜드
                 createProduct("E", Category.TOP, 10700),
                 createProduct("E", Category.OUTER, 5000),
                 createProduct("E", Category.PANTS, 3800),
@@ -75,7 +80,7 @@ public class ProductInitializer {
                 createProduct("E", Category.SOCKS, 2100),
                 createProduct("E", Category.ACCESSORY, 2100),
 
-                // F
+                // F 브랜드
                 createProduct("F", Category.TOP, 11200),
                 createProduct("F", Category.OUTER, 7200),
                 createProduct("F", Category.PANTS, 4000),
@@ -85,7 +90,7 @@ public class ProductInitializer {
                 createProduct("F", Category.SOCKS, 2300),
                 createProduct("F", Category.ACCESSORY, 1900),
 
-                // G
+                // G 브랜드
                 createProduct("G", Category.TOP, 10500),
                 createProduct("G", Category.OUTER, 5800),
                 createProduct("G", Category.PANTS, 3900),
@@ -95,7 +100,7 @@ public class ProductInitializer {
                 createProduct("G", Category.SOCKS, 2100),
                 createProduct("G", Category.ACCESSORY, 2000),
 
-                // H
+                // H 브랜드
                 createProduct("H", Category.TOP, 10800),
                 createProduct("H", Category.OUTER, 6300),
                 createProduct("H", Category.PANTS, 3100),
@@ -105,7 +110,7 @@ public class ProductInitializer {
                 createProduct("H", Category.SOCKS, 2000),
                 createProduct("H", Category.ACCESSORY, 2000),
 
-                // I
+                // I 브랜드
                 createProduct("I", Category.TOP, 11400),
                 createProduct("I", Category.OUTER, 6700),
                 createProduct("I", Category.PANTS, 3200),
@@ -115,16 +120,26 @@ public class ProductInitializer {
                 createProduct("I", Category.SOCKS, 1700),
                 createProduct("I", Category.ACCESSORY, 2400)
             );
-
-            productRepository.saveAll(initialProducts);
-        };
+            
+            productRepository.saveAll(products);
+            log.info("Successfully initialized {} products", products.size());
+        } catch (Exception e) {
+            log.error("Failed to initialize products", e);
+            throw e;
+        }
     }
 
-    private Product createProduct(String brandName, Category category, int price) {
+    private Product createProduct(String brand, Category category, int price) {
         return Product.builder()
-            .brandName(brandName)
+            .brandName(brand)
             .category(category)
             .price(price)
             .build();
+    }
+
+    @Value
+    private static class Range<T> {
+        T min;
+        T max;
     }
 }

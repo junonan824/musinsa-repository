@@ -74,13 +74,11 @@ public class ProductService {
         List<BrandCategoryPriceDto> lowestPrices = productRepository.findLowestPriceByCategory();
         
         List<LowestPriceEachCategoryResponse.CategoryPrice> categoryPrices = lowestPrices.stream()
-            .map(dto -> {
-                return LowestPriceEachCategoryResponse.CategoryPrice.builder()
-                    .category(dto.getCategory().getDisplayName())
-                    .brand(dto.getBrandName())
-                    .price(dto.getPrice())
-                    .build();
-            })
+            .map(dto -> LowestPriceEachCategoryResponse.CategoryPrice.builder()
+                .category(dto.getCategory().getDisplayName())
+                .brand(dto.getBrandName())
+                .price(dto.getPrice())
+                .build())
             .collect(Collectors.toList());
 
         int totalPrice = lowestPrices.stream()

@@ -21,8 +21,14 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
            "(SELECT MAX(p2.price) FROM Product p2 WHERE p2.category = :category)")
     List<Product> findByHighestPriceInCategory(@Param("category") Category category);
 
-    @Query("SELECT p FROM Product p WHERE p.category = :category AND p.price = " +
-           "(SELECT MIN(p2.price) FROM Product p2 WHERE p2.category = :category)")
+    @Query("SELECT p FROM Product p WHERE p.category = :category")
+    List<Product> findByCategory(@Param("category") Category category);
+
+    @Query("""
+        SELECT p FROM Product p 
+        WHERE (p.category = :category) AND 
+        p.price = (SELECT MIN(p2.price) FROM Product p2 WHERE p2.category = :category)
+    """)
     List<Product> findByLowestPriceInCategory(@Param("category") Category category);
 
     @Query("SELECT DISTINCT p.brandName FROM Product p")
@@ -54,14 +60,17 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
            "FROM Product p2 GROUP BY p2.brandName, p2.category)")
     List<BrandCategoryPriceDto> findLowestPricesByBrandAndCategory();
 
-    @Query("SELECT p FROM Product p WHERE p.category = :category")
-    List<Product> findByCategory(Category category);
-
-    @Query("SELECT new com.musinsa.assignment.product.dto.BrandCategoryPriceDto(" +
-           "p.brandName, p.category, p.price) " +
-           "FROM Product p " +
-           "WHERE (p.category, p.price) IN " +
-           "(SELECT p2.category, MIN(p2.price) FROM Product p2 GROUP BY p2.category)")
+    @Query("""
+        SELECT new com.musinsa.assignment.product.dto.BrandCategoryPriceDto(
+            p.brandName, p.category, p.price
+        ) FROM Product p 
+        WHERE p.price IN (
+            SELECT MIN(p2.price) 
+            FROM Product p2 
+            GROUP BY p2.category
+            HAVING p2.category = p.category
+        )
+    """)
     List<BrandCategoryPriceDto> findLowestPriceByCategory();
 
     boolean existsByBrandNameAndCategory(String brandName, Category category);

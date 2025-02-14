@@ -14,6 +14,16 @@ public class ApiResponse<T> {
     private T data;
     private ErrorInfo error;
 
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ErrorInfo {
+        private int status;
+        private String message;
+        private Object details;
+    }
+
     public static <T> ApiResponse<T> success(T data) {
         return ApiResponse.<T>builder()
             .success(true)
@@ -33,13 +43,5 @@ public class ApiResponse<T> {
             .success(false)
             .error(new ErrorInfo(status, message, details))
             .build();
-    }
-
-    @Getter
-    @AllArgsConstructor
-    public static class ErrorInfo {
-        private int status;
-        private String message;
-        private Object details;
     }
 } 

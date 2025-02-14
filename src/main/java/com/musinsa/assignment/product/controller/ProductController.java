@@ -14,6 +14,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.validation.annotation.Validated;
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +25,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api")
 @Validated
+@Tag(name = "상품 관리", description = "상품 CRUD 및 가격 분석 API")
 public class ProductController {
 
     private final ProductService productService;
@@ -30,10 +35,21 @@ public class ProductController {
         this.productService = productService;
     }
 
+    @Operation(summary = "상품 목록 조회", description = "전체 상품 목록을 페이지네이션하여 조회합니다.")
+    @ApiResponses(value = {
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200", 
+            description = "조회 성공"
+        ),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "400", 
+            description = "잘못된 요청"
+        )
+    })
     @GetMapping("/products")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getAllProducts(
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "10") int size
+        @Parameter(description = "페이지 번호 (0부터 시작)") @RequestParam(defaultValue = "0") int page,
+        @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "10") int size
     ) {
         Page<Product> productPage = productService.getAllProducts(page, size);
         
@@ -46,6 +62,8 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    @Operation(summary = "카테고리별 최저가 조회", description = "각 카테고리별 최저가 상품을 조회합니다.")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping("/lowest-price-by-category")
     public ResponseEntity<ApiResponse<LowestPriceEachCategoryResponse>> getLowestPriceByCategory() {
         return ResponseEntity.ok(ApiResponse.success(productService.getLowestPriceEachCategory()));
@@ -65,9 +83,26 @@ public class ProductController {
         );
     }
 
+    @Operation(summary = "상품 등록", description = "새로운 상품을 등록합니다.")
+    @ApiResponses(value = {
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "201", 
+            description = "등록 성공"
+        ),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "400", 
+            description = "잘못된 입력값"
+        ),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "409", 
+            description = "중복된 상품"
+        )
+    })
     @PostMapping("/products")
     public ResponseEntity<ApiResponse<Product>> createProduct(
-            @Valid @RequestBody Product product) {
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "상품 정보")
+        @Valid @RequestBody Product product
+    ) {
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(ApiResponse.success(productService.save(product)));
     }

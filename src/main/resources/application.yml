@@ -8,7 +8,31 @@ spring:
     username: sa
     password:
   h2:
-    console.enabled: true
+    console:
+      enabled: true
+      path: /h2-console
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: false
+    defer-datasource-initialization: true
+    open-in-view: false
+  sql:
+    init:
+      mode: always
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  packages-to-scan: com.musinsa.assignment.product.controller
+
+logging:
+  level:
+    root: INFO
+    com.musinsa.assignment.product: INFO
