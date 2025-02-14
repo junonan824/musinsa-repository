@@ -52,14 +52,14 @@ class CategoryIntegrationTest {
     @DisplayName("각 카테고리의 한글 이름이 올바르게 매핑된다")
     void categoryKoreanNameMapping() {
         // given & when & then
-        assertThat(Category.TOP.getKorName()).isEqualTo("상의");
-        assertThat(Category.OUTER.getKorName()).isEqualTo("아우터");
-        assertThat(Category.PANTS.getKorName()).isEqualTo("바지");
-        assertThat(Category.SNEAKERS.getKorName()).isEqualTo("스니커즈");
-        assertThat(Category.BAG.getKorName()).isEqualTo("가방");
-        assertThat(Category.HAT.getKorName()).isEqualTo("모자");
-        assertThat(Category.SOCKS.getKorName()).isEqualTo("양말");
-        assertThat(Category.ACCESSORY.getKorName()).isEqualTo("액세서리");
+        assertThat(Category.TOP.getDisplayName()).isEqualTo("상의");
+        assertThat(Category.OUTER.getDisplayName()).isEqualTo("아우터");
+        assertThat(Category.PANTS.getDisplayName()).isEqualTo("바지");
+        assertThat(Category.SNEAKERS.getDisplayName()).isEqualTo("스니커즈");
+        assertThat(Category.BAG.getDisplayName()).isEqualTo("가방");
+        assertThat(Category.HAT.getDisplayName()).isEqualTo("모자");
+        assertThat(Category.SOCKS.getDisplayName()).isEqualTo("양말");
+        assertThat(Category.ACCESSORY.getDisplayName()).isEqualTo("액세서리");
     }
 
     @Test

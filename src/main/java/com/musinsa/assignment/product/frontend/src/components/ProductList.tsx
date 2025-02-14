@@ -67,7 +67,9 @@ export default function ProductList({ refreshTrigger, onDelete }: ProductListPro
 
   const handleDelete = async (id: number) => {
     try {
-      const response = await axios.delete<ApiResponse<void>>(`${API_BASE_URL}/products/${id}`);
+      const response = await axios.delete<ApiResponse<Product>>(
+        `${API_BASE_URL}/products/${id}`
+      );
       if (response.data.success) {
         onDelete();
       }

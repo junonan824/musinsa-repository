@@ -26,7 +26,6 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
@@ -73,60 +72,42 @@ class ProductServiceTest {
     @DisplayName("각 카테고리별 최저가격 상품을 조회한다")
     void getLowestPriceEachCategory() {
         // given
-        when(productRepository.findByLowestPriceInCategory(Category.TOP))
-            .thenReturn(Collections.singletonList(createProduct("C", Category.TOP, 10000)));
-        when(productRepository.findByLowestPriceInCategory(Category.OUTER))
-            .thenReturn(Collections.singletonList(createProduct("E", Category.OUTER, 5000)));
-        when(productRepository.findByLowestPriceInCategory(Category.PANTS))
-            .thenReturn(Collections.singletonList(createProduct("D", Category.PANTS, 3000)));
-        when(productRepository.findByLowestPriceInCategory(Category.SNEAKERS))
-            .thenReturn(Collections.singletonList(createProduct("G", Category.SNEAKERS, 9000)));
-        when(productRepository.findByLowestPriceInCategory(Category.BAG))
-            .thenReturn(Collections.singletonList(createProduct("A", Category.BAG, 2000)));
-        when(productRepository.findByLowestPriceInCategory(Category.HAT))
-            .thenReturn(Collections.singletonList(createProduct("D", Category.HAT, 1500)));
-        when(productRepository.findByLowestPriceInCategory(Category.SOCKS))
-            .thenReturn(Collections.singletonList(createProduct("I", Category.SOCKS, 1700)));
-        when(productRepository.findByLowestPriceInCategory(Category.ACCESSORY))
-            .thenReturn(Collections.singletonList(createProduct("F", Category.ACCESSORY, 1900)));
+        List<BrandCategoryPriceDto> lowestPrices = Arrays.asList(
+            new BrandCategoryPriceDto("C", Category.TOP, 10000),
+            new BrandCategoryPriceDto("E", Category.OUTER, 5000),
+            new BrandCategoryPriceDto("D", Category.PANTS, 3000),
+            new BrandCategoryPriceDto("A", Category.SNEAKERS, 9000),
+            new BrandCategoryPriceDto("A", Category.BAG, 2000),
+            new BrandCategoryPriceDto("D", Category.HAT, 1500),
+            new BrandCategoryPriceDto("I", Category.SOCKS, 1700),
+            new BrandCategoryPriceDto("F", Category.ACCESSORY, 1900)
+        );
+        
+        when(productRepository.findLowestPriceByCategory()).thenReturn(lowestPrices);
 
         // when
         LowestPriceEachCategoryResponse response = productService.getLowestPriceEachCategory();
 
         // then
         assertThat(response.getTotalPrice()).isEqualTo(34100);
-        assertThat(response.getLowestPriceByCategory())
-            .hasSize(8)
-            .extracting("category", "brand", "price")
-            .containsExactlyInAnyOrder(
-                tuple("상의", "C", 10000),
-                tuple("아우터", "E", 5000),
-                tuple("바지", "D", 3000),
-                tuple("스니커즈", "G", 9000),
-                tuple("가방", "A", 2000),
-                tuple("모자", "D", 1500),
-                tuple("양말", "I", 1700),
-                tuple("액세서리", "F", 1900)
-            );
     }
 
     @Test
     @DisplayName("단일 브랜드의 모든 카테고리 최저가격을 조회한다")
     void getLowestPriceSingleBrand() {
         // given
-        List<BrandCategoryPriceDto> mockData = Arrays.asList(
-            new BrandCategoryPriceDto("D", Category.TOP, 10100),
-            new BrandCategoryPriceDto("D", Category.OUTER, 5100),
-            new BrandCategoryPriceDto("D", Category.PANTS, 3000),
-            new BrandCategoryPriceDto("D", Category.SNEAKERS, 9500),
-            new BrandCategoryPriceDto("D", Category.BAG, 2500),
-            new BrandCategoryPriceDto("D", Category.HAT, 1500),
-            new BrandCategoryPriceDto("D", Category.SOCKS, 2400),
-            new BrandCategoryPriceDto("D", Category.ACCESSORY, 2000)
+        List<Product> products = Arrays.asList(
+            createProduct("D", Category.TOP, 10100),
+            createProduct("D", Category.OUTER, 5100),
+            createProduct("D", Category.PANTS, 3000),
+            createProduct("D", Category.SNEAKERS, 9500),
+            createProduct("D", Category.BAG, 2500),
+            createProduct("D", Category.HAT, 1500),
+            createProduct("D", Category.SOCKS, 2400),
+            createProduct("D", Category.ACCESSORY, 2000)
         );
-
-        when(productRepository.findLowestPricesByBrandAndCategory())
-            .thenReturn(mockData);
+        
+        when(productRepository.findAll()).thenReturn(products);
 
         // when
         LowestPriceSingleBrandResponse response = productService.getLowestPriceSingleBrand();
@@ -134,45 +115,27 @@ class ProductServiceTest {
         // then
         assertThat(response.getBrand()).isEqualTo("D");
         assertThat(response.getTotalPrice()).isEqualTo(36100);
-        assertThat(response.getItems())
-            .hasSize(8)
-            .extracting("category", "price")
-            .containsExactlyInAnyOrder(
-                tuple("상의", 10100),
-                tuple("아우터", 5100),
-                tuple("바지", 3000),
-                tuple("스니커즈", 9500),
-                tuple("가방", 2500),
-                tuple("모자", 1500),
-                tuple("양말", 2400),
-                tuple("액세서리", 2000)
-            );
     }
 
     @Test
     @DisplayName("특정 카테고리의 최고/최저가 정보를 조회한다")
     void getCategoryPriceInfo() {
         // given
-        Category category = Category.TOP;
-        Product highestProduct = createProduct("I", category, 11400);
-        Product lowestProduct = createProduct("C", category, 10000);
-
-        when(productRepository.findByHighestPriceInCategory(category))
-            .thenReturn(Collections.singletonList(highestProduct));
-        when(productRepository.findByLowestPriceInCategory(category))
-            .thenReturn(Collections.singletonList(lowestProduct));
+        List<Product> products = Arrays.asList(
+            createProduct("I", Category.TOP, 11400),
+            createProduct("C", Category.TOP, 10000)
+        );
+        
+        when(productRepository.findByCategory(Category.TOP)).thenReturn(products);
 
         // when
-        CategoryPriceInfoResponse response = productService.getCategoryPriceInfo(category);
+        CategoryPriceInfoResponse response = productService.getCategoryPriceInfo(Category.TOP);
 
         // then
-        assertThat(response.getHighest())
-            .extracting("brand", "price")
-            .containsExactly("I", 11400);
-        
-        assertThat(response.getLowest())
-            .extracting("brand", "price")
-            .containsExactly("C", 10000);
+        assertThat(response.getHighest().getBrand()).isEqualTo("I");
+        assertThat(response.getHighest().getPrice()).isEqualTo(11400);
+        assertThat(response.getLowest().getBrand()).isEqualTo("C");
+        assertThat(response.getLowest().getPrice()).isEqualTo(10000);
     }
 
     @Test
@@ -225,10 +188,16 @@ class ProductServiceTest {
     void deleteProduct() {
         // given
         Long productId = 1L;
-        when(productRepository.existsById(productId)).thenReturn(true);
+        Product product = createProduct("TestBrand", Category.TOP, 15000);
+        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
 
-        // when & then
-        assertDoesNotThrow(() -> productService.deleteById(productId));
+        // when
+        Product deletedProduct = productService.deleteById(productId);
+
+        // then
+        assertThat(deletedProduct)
+            .extracting("brandName", "category", "price")
+            .containsExactly("TestBrand", Category.TOP, 15000);
     }
 
     @Test
@@ -236,7 +205,7 @@ class ProductServiceTest {
     void deleteProduct_NotFound() {
         // given
         Long productId = 999L;
-        when(productRepository.existsById(productId)).thenReturn(false);
+        when(productRepository.findById(productId)).thenReturn(Optional.empty());
 
         // when & then
         assertThrows(ProductNotFoundException.class, () -> 

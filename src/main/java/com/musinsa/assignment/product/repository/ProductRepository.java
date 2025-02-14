@@ -56,4 +56,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Query("SELECT p FROM Product p WHERE p.category = :category")
     List<Product> findByCategory(Category category);
+
+    @Query("SELECT new com.musinsa.assignment.product.dto.BrandCategoryPriceDto(" +
+           "p.brandName, p.category, p.price) " +
+           "FROM Product p " +
+           "WHERE (p.category, p.price) IN " +
+           "(SELECT p2.category, MIN(p2.price) FROM Product p2 GROUP BY p2.category)")
+    List<BrandCategoryPriceDto> findLowestPriceByCategory();
 }

@@ -101,10 +101,23 @@ class ProductControllerTest {
     @Test
     @DisplayName("상품을 삭제한다")
     void deleteProduct() throws Exception {
+        // given
+        Product product = Product.builder()
+            .id(1L)
+            .brandName("TestBrand")
+            .category(Category.TOP)
+            .price(15000)
+            .build();
+        when(productService.deleteById(1L)).thenReturn(product);
+
         // when & then
         mockMvc.perform(delete("/api/products/1"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.success").value(true));
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.data.id").value(1))
+            .andExpect(jsonPath("$.data.brandName").value("TestBrand"))
+            .andExpect(jsonPath("$.data.category").value("TOP"))
+            .andExpect(jsonPath("$.data.price").value(15000));
     }
 
     @Test

@@ -10,13 +10,13 @@ public enum Category {
     SOCKS("양말"),
     ACCESSORY("액세서리");
 
-    private final String korName;
+    private final String displayName;
 
-    Category(String korName) {
-        this.korName = korName;
+    Category(String displayName) {
+        this.displayName = displayName;
     }
 
-    public String getKorName() {
-        return korName;
+    public String getDisplayName() {
+        return displayName;
     }
 }
