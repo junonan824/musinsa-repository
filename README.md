@@ -114,3 +114,15 @@ yarn dev
 - `WebConfig.java`에서 CORS 설정이 되어 있어 프론트엔드(3000)에서 백엔드(8080)로의 API 요청이 가능합니다.
 - 데이터베이스는 H2 인메모리 데이터베이스를 사용하며, `ProductInitializer.java`에서 초기 데이터가 자동으로 로드됩니다.
 - 프론트엔드 개발 시에는 `next.config.ts`의 리라이트 설정을 통해 API 요청이 백엔드로 프록시됩니다.
+
+### 개발 도구 접속
+
+#### H2 Database Console
+- URL: `http://localhost:8080/h2-console`
+- JDBC URL: `jdbc:h2:mem:testdb`
+- Username: `sa`
+- Password: (빈 값)
+
+#### Swagger UI (API 문서)
+- URL: `http://localhost:8080/swagger-ui.html`
+- API 엔드포인트 테스트 및 문서 확인 가능
