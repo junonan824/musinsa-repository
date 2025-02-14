@@ -343,29 +343,6 @@ Error Response (404 Not Found):
 - NPM Version: >= 9
 - Gradle Version: 8.x
 
-## 성능 최적화 전략
-
-### 1. 데이터베이스 최적화
-- 복합 인덱스 적용: (brandName, category)
-- JPQL 최적화로 N+1 문제 방지
-- 페이지네이션 적용으로 대용량 데이터 처리
-
-### 2. API 응답 성능
-- DTO 프로젝션으로 필요한 데이터만 조회
-- 적절한 페이지 사이즈 설정 (기본값: 10)
-- 추후 Redis 캐시 적용 고려
-
-
-### 2. 일반적인 문제 해결
-1. H2 Console 접속 실패
-   - JDBC URL이 `jdbc:h2:mem:testdb`인지 확인
-   - WebConfig의 CORS 설정 확인
-
-2. Frontend API 호출 실패
-   - 백엔드 서버 실행 상태 확인
-   - next.config.ts의 proxy 설정 확인
-   - 브라우저 콘솔의 CORS 에러 확인
-
 ----
 ## 백엔드 실행 방법 (Spring Boot)
 
