@@ -12,12 +12,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.validation.annotation.Validated;
+import jakarta.validation.Valid;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
+@Validated
 public class ProductController {
 
     private final ProductService productService;
@@ -63,26 +66,23 @@ public class ProductController {
     }
 
     @PostMapping("/products")
-    public ResponseEntity<ApiResponse<Product>> createProduct(@RequestBody Product product) {
-        Product savedProduct = productService.save(product);
-        return ResponseEntity
-            .status(HttpStatus.CREATED)
-            .body(ApiResponse.success(savedProduct));
+    public ResponseEntity<ApiResponse<Product>> createProduct(
+            @Valid @RequestBody Product product) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(ApiResponse.success(productService.save(product)));
     }
 
     @PutMapping("/products/{id}")
     public ResponseEntity<ApiResponse<Product>> updateProduct(
-        @PathVariable Long id,
-        @RequestBody Product product
-    ) {
-        product.setId(id);
-        Product updatedProduct = productService.save(product);
-        return ResponseEntity.ok(ApiResponse.success(updatedProduct));
+            @PathVariable Long id,
+            @Valid @RequestBody Product product) {
+        return ResponseEntity.ok(
+            ApiResponse.success(productService.update(id, product)));
     }
 
     @DeleteMapping("/products/{id}")
     public ResponseEntity<ApiResponse<Product>> deleteProduct(@PathVariable Long id) {
-        Product deletedProduct = productService.deleteById(id);
-        return ResponseEntity.ok(ApiResponse.success(deletedProduct));
+        return ResponseEntity.ok(
+            ApiResponse.success(productService.deleteById(id)));
     }
 } 

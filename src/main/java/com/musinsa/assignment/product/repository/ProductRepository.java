@@ -63,4 +63,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
            "WHERE (p.category, p.price) IN " +
            "(SELECT p2.category, MIN(p2.price) FROM Product p2 GROUP BY p2.category)")
     List<BrandCategoryPriceDto> findLowestPriceByCategory();
+
+    boolean existsByBrandNameAndCategory(String brandName, Category category);
 }

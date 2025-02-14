@@ -1,8 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
+import { ApiResponse, Product } from '../types/api';
+import { handleApiError } from '../utils/errorHandler';
 
 interface ProductFormProps {
   onSuccess: () => void;
@@ -14,31 +16,41 @@ const CATEGORIES = [
 ] as const;
 
 export default function ProductForm({ onSuccess }: ProductFormProps) {
-  const [formData, setFormData] = React.useState({
+  const [formData, setFormData] = useState({
     brandName: '',
     category: 'TOP' as typeof CATEGORIES[number],
     price: ''
   });
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError(null);
+    
     try {
       const response = await axios.post<ApiResponse<Product>>(`${API_BASE_URL}/products`, {
         ...formData,
         price: parseInt(formData.price)
       });
+
       if (response.data.success) {
         setFormData({ brandName: '', category: 'TOP', price: '' });
         onSuccess();
       }
-    } catch (error) {
-      console.error('Failed to create product:', error);
+    } catch (err) {
+      const errorMessage = handleApiError(err);
+      setError(errorMessage);
     }
   };
 
   return (
     <div className="overflow-x-auto">
-      <form onSubmit={handleSubmit}>
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
+        </div>
+      )}
+      <form onSubmit={handleSubmit} className="space-y-4">
         <table className="musinsa-table">
           <thead>
             <tr className="musinsa-table-header">

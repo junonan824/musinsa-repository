@@ -8,6 +8,7 @@ import com.musinsa.assignment.product.service.ProductService;
 import com.musinsa.assignment.product.dto.response.LowestPriceEachCategoryResponse;
 import com.musinsa.assignment.product.dto.response.LowestPriceSingleBrandResponse;
 import com.musinsa.assignment.product.dto.response.CategoryPriceInfoResponse;
+import com.musinsa.assignment.product.exception.DuplicateProductException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.ArgumentMatchers.eq;
 
 @WebMvcTest(ProductController.class)
 class ProductControllerTest {
@@ -236,24 +238,73 @@ class ProductControllerTest {
     @DisplayName("상품을 수정한다")
     void updateProduct() throws Exception {
         // given
-        Product product = Product.builder()
-            .id(1L)
+        Long productId = 1L;
+        Product updateProduct = Product.builder()
             .brandName("Nike")
             .category(Category.TOP)
             .price(50000)
             .build();
 
-        when(productService.save(any(Product.class))).thenReturn(product);
+        Product updatedProduct = Product.builder()
+            .id(productId)
+            .brandName("Nike")
+            .category(Category.TOP)
+            .price(50000)
+            .build();
+
+        when(productService.update(eq(productId), any(Product.class))).thenReturn(updatedProduct);
 
         // when & then
-        mockMvc.perform(put("/api/products/1")
+        mockMvc.perform(put("/api/products/{id}", productId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(product)))
+                .content(objectMapper.writeValueAsString(updateProduct)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
-            .andExpect(jsonPath("$.data.id").value(1))
+            .andExpect(jsonPath("$.data.id").value(productId))
             .andExpect(jsonPath("$.data.brandName").value("Nike"))
             .andExpect(jsonPath("$.data.category").value("TOP"))
             .andExpect(jsonPath("$.data.price").value(50000));
+    }
+
+    @Test
+    @DisplayName("잘못된 가격으로 상품 생성 시 400 에러가 발생한다")
+    void createProduct_InvalidPrice() throws Exception {
+        // given
+        Product product = Product.builder()
+            .brandName("TestBrand")
+            .category(Category.TOP)
+            .price(-1000)
+            .build();
+
+        // when & then
+        mockMvc.perform(post("/api/products")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(product)))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.success").value(false))
+            .andExpect(jsonPath("$.error.message").value("Validation failed"))
+            .andExpect(jsonPath("$.error.details.price").value("상품 가격은 0원 이상이어야 합니다"));
+    }
+
+    @Test
+    @DisplayName("중복된 상품 생성 시 409 에러가 발생한다")
+    void createProduct_Duplicate() throws Exception {
+        // given
+        Product product = Product.builder()
+            .brandName("TestBrand")
+            .category(Category.TOP)
+            .price(10000)
+            .build();
+
+        when(productService.save(any(Product.class)))
+            .thenThrow(new DuplicateProductException("이미 존재하는 상품입니다."));
+
+        // when & then
+        mockMvc.perform(post("/api/products")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(product)))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.success").value(false))
+            .andExpect(jsonPath("$.error.message").value("이미 존재하는 상품입니다."));
     }
 } 

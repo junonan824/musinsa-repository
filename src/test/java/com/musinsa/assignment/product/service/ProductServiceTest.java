@@ -28,6 +28,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.musinsa.assignment.product.exception.InvalidPriceException;
+import com.musinsa.assignment.product.exception.InvalidBrandNameException;
+import com.musinsa.assignment.product.exception.DuplicateProductException;
+
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
 
@@ -236,5 +240,61 @@ class ProductServiceTest {
                 tuple("BrandA", 15000),
                 tuple("BrandB", 12000)
             );
+    }
+
+    @Test
+    @DisplayName("상품 저장 시 가격이 음수이면 예외가 발생한다")
+    void saveProduct_InvalidPrice() {
+        // given
+        Product product = Product.builder()
+            .brandName("TestBrand")
+            .category(Category.TOP)
+            .price(-1000)
+            .build();
+
+        // when & then
+        assertThrows(InvalidPriceException.class, () -> 
+            productService.save(product));
+    }
+
+    @Test
+    @DisplayName("상품 저장 시 브랜드명이 없으면 예외가 발생한다")
+    void saveProduct_InvalidBrandName() {
+        // given
+        Product product = Product.builder()
+            .brandName("")
+            .category(Category.TOP)
+            .price(10000)
+            .build();
+
+        // when & then
+        assertThrows(InvalidBrandNameException.class, () -> 
+            productService.save(product));
+    }
+
+    @Test
+    @DisplayName("동일한 브랜드와 카테고리의 상품이 이미 존재하면 예외가 발생한다")
+    void saveProduct_DuplicateProduct() {
+        // given
+        Product product = createProduct("TestBrand", Category.TOP, 10000);
+        when(productRepository.existsByBrandNameAndCategory(
+            product.getBrandName(), product.getCategory())).thenReturn(true);
+
+        // when & then
+        assertThrows(DuplicateProductException.class, () -> 
+            productService.save(product));
+    }
+
+    @Test
+    @DisplayName("상품 수정 시 기존 상품이 없으면 예외가 발생한다")
+    void updateProduct_NotFound() {
+        // given
+        Long productId = 999L;
+        Product updateProduct = createProduct("UpdatedBrand", Category.TOP, 20000);
+        when(productRepository.findById(productId)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThrows(ProductNotFoundException.class, () -> 
+            productService.update(productId, updateProduct));
     }
 } 

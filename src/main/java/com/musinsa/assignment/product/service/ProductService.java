@@ -8,6 +8,9 @@ import com.musinsa.assignment.product.dto.BrandCategoryPriceDto;
 import com.musinsa.assignment.product.dto.response.LowestPriceEachCategoryResponse;
 import com.musinsa.assignment.product.dto.response.LowestPriceSingleBrandResponse;
 import com.musinsa.assignment.product.dto.response.CategoryPriceInfoResponse;
+import com.musinsa.assignment.product.exception.InvalidPriceException;
+import com.musinsa.assignment.product.exception.InvalidBrandNameException;
+import com.musinsa.assignment.product.exception.DuplicateProductException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,9 +28,34 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
-    @Transactional  // 쓰기 작업이므로 읽기 전용 해제
+    @Transactional
     public Product save(Product product) {
+        validateProduct(product);
+        checkDuplicateProduct(product);
         return productRepository.save(product);
+    }
+
+    private void validateProduct(Product product) {
+        if (product.getPrice() < 0) {
+            throw new InvalidPriceException("상품 가격은 0원 이상이어야 합니다.");
+        }
+        if (product.getBrandName() == null || product.getBrandName().trim().isEmpty()) {
+            throw new InvalidBrandNameException("브랜드명은 필수입니다.");
+        }
+        if (product.getBrandName().length() > 50) {
+            throw new InvalidBrandNameException("브랜드명은 50자를 초과할 수 없습니다.");
+        }
+    }
+
+    private void checkDuplicateProduct(Product product) {
+        if (productRepository.existsByBrandNameAndCategory(
+                product.getBrandName(), product.getCategory())) {
+            throw new DuplicateProductException(
+                String.format("이미 존재하는 상품입니다. 브랜드: %s, 카테고리: %s", 
+                    product.getBrandName(), 
+                    product.getCategory().getDisplayName())
+            );
+        }
     }
 
     @Transactional
@@ -133,5 +161,22 @@ public class ProductService {
     public Product findById(Long id) {
         return productRepository.findById(id)
             .orElseThrow(() -> new ProductNotFoundException(id));
+    }
+
+    @Transactional
+    public Product update(Long id, Product updateProduct) {
+        Product existingProduct = findById(id);
+        validateProduct(updateProduct);
+        
+        if (!existingProduct.getBrandName().equals(updateProduct.getBrandName()) ||
+            !existingProduct.getCategory().equals(updateProduct.getCategory())) {
+            checkDuplicateProduct(updateProduct);
+        }
+        
+        existingProduct.setBrandName(updateProduct.getBrandName());
+        existingProduct.setCategory(updateProduct.getCategory());
+        existingProduct.setPrice(updateProduct.getPrice());
+        
+        return existingProduct;
     }
 } 
