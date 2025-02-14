@@ -132,7 +132,7 @@ musinsa-assignment/
 │   │   │       ├── service
 │   │   │       ├── repository
 │   │   │       ├── domain
-│   │   │       ├── dto
+|   |   |       ├── dto
 |   |   |       ├── frontend
 │   │   │       ├── exception
 │   │   │       ├── config
@@ -145,7 +145,35 @@ musinsa-assignment/
 
 ## API 명세
 
-### 1. 카테고리별 최저가 조회
+### 1. 상품 목록 조회
+```
+GET /api/products
+
+Query Parameters:
+- page: 페이지 번호 (기본값: 0)
+- size: 페이지 크기 (기본값: 10)
+
+Response:
+{
+    "success": true,
+    "data": {
+        "products": [
+            {
+                "id": 1,
+                "brandName": "A",
+                "category": "TOP",
+                "price": 11200
+            },
+            ...
+        ],
+        "currentPage": 0,
+        "totalItems": 72,
+        "totalPages": 8
+    }
+}
+```
+
+### 2. 카테고리별 최저가 조회
 ```
 GET /api/lowest-price-by-category
 
@@ -166,7 +194,7 @@ Response:
 }
 ```
 
-### 2. 단일 브랜드 최저가 조회
+### 3. 단일 브랜드 최저가 조회
 ```
 GET /api/lowest-price-single-brand
 
@@ -187,12 +215,12 @@ Response:
 }
 ```
 
-### 3. 카테고리별 가격 정보 조회
+### 4. 카테고리별 가격 정보 조회
 ```
 GET /api/category-price-info/{category}
 
 Path Variables:
-- category: Category enum (TOP, OUTER, ...)
+- category: Category enum (TOP, OUTER, PANTS, SNEAKERS, BAG, HAT, SOCKS, ACCESSORY)
 
 Response:
 {
@@ -206,6 +234,104 @@ Response:
             "brand": "C",
             "price": 10000
         }
+    }
+}
+```
+
+### 5. 상품 등록
+```
+POST /api/products
+
+Request Body:
+{
+    "brandName": "string",     // 필수, 최대 50자
+    "category": "string",      // 필수, Category enum 값
+    "price": number           // 필수, 0 이상
+}
+
+Response:
+{
+    "success": true,
+    "data": {
+        "id": 1,
+        "brandName": "Nike",
+        "category": "TOP",
+        "price": 50000
+    }
+}
+
+Error Response (400 Bad Request):
+{
+    "success": false,
+    "error": {
+        "status": 400,
+        "message": "브랜드명은 필수입니다"
+    }
+}
+```
+
+### 6. 상품 수정
+```
+PUT /api/products/{id}
+
+Path Variables:
+- id: 상품 ID
+
+Request Body:
+{
+    "brandName": "string",     // 필수, 최대 50자
+    "category": "string",      // 필수, Category enum 값
+    "price": number           // 필수, 0 이상
+}
+
+Response:
+{
+    "success": true,
+    "data": {
+        "id": 1,
+        "brandName": "Nike",
+        "category": "TOP",
+        "price": 55000
+    }
+}
+```
+
+### 7. 상품 삭제
+```
+DELETE /api/products/{id}
+
+Path Variables:
+- id: 상품 ID
+
+Response:
+{
+    "success": true,
+    "data": {
+        "id": 1,
+        "brandName": "Nike",
+        "category": "TOP",
+        "price": 50000
+    }
+}
+
+Error Response (404 Not Found):
+{
+    "success": false,
+    "error": {
+        "status": 404,
+        "message": "Product not found with id: 1"
+    }
+}
+```
+
+### 공통 에러 응답 형식
+```json
+{
+    "success": false,
+    "error": {
+        "status": number,      // HTTP 상태 코드
+        "message": "string",   // 에러 메시지
+        "details": object      // 추가 에러 정보 (옵션)
     }
 }
 ```
