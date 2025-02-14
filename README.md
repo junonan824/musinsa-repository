@@ -74,6 +74,9 @@
 - GET /api/lowest-price-by-category: 카테고리별 최저가 상품 조회
 - GET /api/lowest-price-single-brand: 단일 브랜드 최저가격 조회
 - GET /api/category-price-info/{category}: 특정 카테고리의 최고/최저가 조회
+- POST /api/products: 새로운 상품 등록
+- PUT /api/products/{id}: 상품 정보 수정
+- DELETE /api/products/{id}: 상품 삭제
 ```
 
 3. **예외 처리**
