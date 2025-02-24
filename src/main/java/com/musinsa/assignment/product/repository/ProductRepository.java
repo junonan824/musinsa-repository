@@ -44,13 +44,18 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT p FROM Product p ORDER BY p.id DESC")
     Page<Product> findAllOrderByIdDesc(Pageable pageable);
 
-    @Query("SELECT new com.musinsa.assignment.product.dto.CategoryPriceDto(" +
-           "p.category, p.brandName, p.price) " +
-           "FROM Product p " +
-           "WHERE (p.category, p.price) IN " +
-           "(SELECT p2.category, MIN(p2.price) " +
-           "FROM Product p2 GROUP BY p2.category)")
-    List<CategoryPriceDto> findLowestPricesGroupByCategory();
+    @Query("""
+        SELECT new com.musinsa.assignment.product.dto.CategoryPriceDto(
+            p.category, p.brandName, MIN(p.price)
+        ) FROM Product p 
+        GROUP BY p.category, p.brandName
+        HAVING p.price = (
+            SELECT MIN(p2.price) 
+            FROM Product p2 
+            WHERE p2.category = p.category
+        )
+    """)
+    List<CategoryPriceDto> findLowestPricesByCategory();
 
     @Query("SELECT new com.musinsa.assignment.product.dto.BrandCategoryPriceDto(" +
            "p.brandName, p.category, p.price) " +
